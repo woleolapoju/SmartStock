@@ -1,0 +1,46 @@
+@model IEnumerable<SmartStock.Models.Store>
+@{
+    ViewData["Title"] = "Stores";
+}
+
+<div class="page-hero d-flex justify-content-between align-items-center">
+    <h4 class="mb-0 fw-bold">Stores</h4>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Store
+    </a>
+</div>
+
+<div class="row g-3">
+    @foreach (var s in Model)
+    {
+        <div class="col-md-4">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="fw-bold mb-0">@s.Name</h6>
+                    @if (s.IsActive)
+                    { <span class="badge-received">Active</span> }
+                    else
+                    { <span class="badge-cancelled">Inactive</span> }
+                </div>
+                <div class="text-muted small mb-3">
+                    @if (!string.IsNullOrEmpty(s.Address)) { <div><i class="bi bi-geo-alt me-1"></i>@s.Address</div> }
+                    @if (!string.IsNullOrEmpty(s.Phone)) { <div><i class="bi bi-telephone me-1"></i>@s.Phone</div> }
+                    @if (!string.IsNullOrEmpty(s.Email)) { <div><i class="bi bi-envelope me-1"></i>@s.Email</div> }
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="Details" asp-route-id="@s.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                    <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <form asp-action="Delete" asp-route-id="@s.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('Deactivate @s.Name?')">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-4 text-muted">No stores yet.</div>
+    }
+</div>

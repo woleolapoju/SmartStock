@@ -1,0 +1,92 @@
+@model SmartStock.Models.Purchase
+@{
+    ViewData["Title"] = Model.ReferenceNumber;
+}
+
+<div class="page-hero">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a asp-action="Index">Purchases</a></li>
+            <li class="breadcrumb-item active">@Model.ReferenceNumber</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-0 fw-bold">@Model.ReferenceNumber</h4>
+            <span class="badge-@Model.Status.ToString().ToLower()">@Model.Status</span>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.Status != SmartStock.Models.PurchaseStatus.Received &&
+                 Model.Status != SmartStock.Models.PurchaseStatus.Cancelled &&
+                 (User.IsInRole("Admin") || User.IsInRole("WarehouseManager")))
+            {
+                <form asp-action="Receive" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-success"><i class="bi bi-box-arrow-in-down me-1"></i>Mark Received</button>
+                </form>
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post"
+                      onsubmit="return confirm('Cancel this purchase order?')">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-danger">Cancel</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h6 class="fw-semibold mb-3">Order Items</h6>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead class="table-light">
+                        <tr><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Cost</th><th class="text-end">Line Total</th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td class="fw-medium">@item.Product?.Name</td>
+                            <td><code class="small">@item.Product?.SKU</code></td>
+                            <td>@item.Quantity</td>
+                            <td>$@item.UnitCost.ToString("N2")</td>
+                            <td class="text-end fw-bold">$@item.LineTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold fs-6">
+                            <td colspan="4" class="text-end">Total</td>
+                            <td class="text-end text-primary">$@Model.TotalAmount.ToString("N2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h6 class="fw-semibold mb-3">Order Info</h6>
+            <dl class="row mb-0">
+                <dt class="col-6 text-muted small">Warehouse</dt>
+                <dd class="col-6 small">@Model.Warehouse?.Name</dd>
+                <dt class="col-6 text-muted small">Supplier</dt>
+                <dd class="col-6 small">@(Model.SupplierName ?? "—")</dd>
+                <dt class="col-6 text-muted small">Created By</dt>
+                <dd class="col-6 small">@(Model.CreatedBy?.FullName ?? "—")</dd>
+                <dt class="col-6 text-muted small">Order Date</dt>
+                <dd class="col-6 small">@Model.PurchaseDate.ToString("MM/dd/yyyy HH:mm")</dd>
+                @if (Model.ReceivedDate.HasValue)
+                {
+                    <dt class="col-6 text-muted small">Received</dt>
+                    <dd class="col-6 small">@Model.ReceivedDate.Value.ToString("MM/dd/yyyy HH:mm")</dd>
+                }
+            </dl>
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <hr /><p class="small text-muted">@Model.Notes</p>
+            }
+        </div>
+    </div>
+</div>

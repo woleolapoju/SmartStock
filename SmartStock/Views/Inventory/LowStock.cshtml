@@ -1,0 +1,51 @@
+@model IEnumerable<SmartStock.ViewModels.InventoryViewModel>
+@{
+    ViewData["Title"] = "Low Stock Alert";
+}
+
+<div class="page-hero">
+    <h4 class="mb-0 fw-bold text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Low Stock Alerts</h4>
+    <p class="text-muted mb-0 small">@Model.Count() items at or below reorder level</p>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Product</th><th>SKU</th><th>Location</th><th>Type</th><th>Qty</th><th>Reorder Level</th><th>Deficit</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.OrderBy(i => i.Quantity))
+            {
+                <tr class="@(item.Quantity == 0 ? "table-danger" : "")">
+                    <td class="fw-medium">@item.ProductName</td>
+                    <td><code class="small">@item.SKU</code></td>
+                    <td>@item.LocationName</td>
+                    <td>
+                        @if (item.LocationType == SmartStock.Models.LocationType.Warehouse)
+                        { <span class="badge bg-primary">Warehouse</span> }
+                        else
+                        { <span class="badge bg-success">Store</span> }
+                    </td>
+                    <td>
+                        @if (item.Quantity == 0)
+                        { <span class="badge bg-danger">OUT OF STOCK</span> }
+                        else
+                        { <span class="fw-bold text-danger">@item.Quantity</span> }
+                    </td>
+                    <td class="text-muted">@item.ReorderLevel</td>
+                    <td>
+                        <span class="text-danger fw-bold">-@(item.ReorderLevel - item.Quantity)</span>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="7" class="text-center py-4 text-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>All stock levels are OK!
+                </td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

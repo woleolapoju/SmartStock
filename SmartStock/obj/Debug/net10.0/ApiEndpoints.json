@@ -1,0 +1,70 @@
+[
+  {
+    "ContainingType": "SmartStock.Controllers.Api.ApiInventoryController",
+    "Method": "GetStock",
+    "RelativePath": "api/inventory/{productId}/{locationType}/{locationId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "locationType",
+        "Type": "SmartStock.Models.LocationType",
+        "IsRequired": true
+      },
+      {
+        "Name": "locationId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartStock.Controllers.Api.ApiInventoryController",
+    "Method": "GetLowStock",
+    "RelativePath": "api/inventory/lowstock",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartStock.Controllers.Api.ApiInventoryController",
+    "Method": "GetStoreInventory",
+    "RelativePath": "api/inventory/store/{storeId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "storeId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "SmartStock.Controllers.Api.ApiInventoryController",
+    "Method": "GetWarehouseInventory",
+    "RelativePath": "api/inventory/warehouse/{warehouseId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "warehouseId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

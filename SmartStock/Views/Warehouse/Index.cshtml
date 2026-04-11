@@ -1,0 +1,44 @@
+@model IEnumerable<SmartStock.Models.Warehouse>
+@{
+    ViewData["Title"] = "Warehouses";
+}
+
+<div class="page-hero d-flex justify-content-between align-items-center">
+    <h4 class="mb-0 fw-bold">Warehouses</h4>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>New Warehouse
+        </a>
+    }
+</div>
+
+<div class="row g-3">
+    @foreach (var w in Model)
+    {
+        <div class="col-md-4">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-building me-2 text-primary"></i>@w.Name</h6>
+                    @if (w.IsActive)
+                    { <span class="badge-received">Active</span> }
+                    else
+                    { <span class="badge-cancelled">Inactive</span> }
+                </div>
+                <div class="text-muted small mb-3">
+                    @if (!string.IsNullOrEmpty(w.Address)) { <div><i class="bi bi-geo-alt me-1"></i>@w.Address</div> }
+                    @if (!string.IsNullOrEmpty(w.Phone)) { <div><i class="bi bi-telephone me-1"></i>@w.Phone</div> }
+                    @if (!string.IsNullOrEmpty(w.Email)) { <div><i class="bi bi-envelope me-1"></i>@w.Email</div> }
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Inventory" asp-action="Warehouse" asp-route-warehouseId="@w.Id"
+                       class="btn btn-sm btn-outline-secondary">Inventory</a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@w.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

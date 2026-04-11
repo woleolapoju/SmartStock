@@ -1,0 +1,76 @@
+@model IEnumerable<SmartStock.ViewModels.InventoryViewModel>
+@{
+    ViewData["Title"] = "Inventory Report";
+}
+
+<div class="page-hero d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-clipboard-data me-2"></i>Inventory Report</h4>
+        <p class="text-muted mb-0 small">All locations — @Model.Count() records</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Report" asp-action="Sales" class="btn btn-outline-secondary">Sales Report</a>
+        <a asp-controller="Report" asp-action="Transfers" class="btn btn-outline-secondary">Transfers Report</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Total SKUs</div>
+            <div class="fs-4 fw-bold">@Model.Select(i => i.ProductId).Distinct().Count()</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Total Units</div>
+            <div class="fs-4 fw-bold">@Model.Sum(i => i.Quantity).ToString("N0")</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Low Stock Items</div>
+            <div class="fs-4 fw-bold text-warning">@Model.Count(i => i.IsLowStock)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Out of Stock</div>
+            <div class="fs-4 fw-bold text-danger">@Model.Count(i => i.Quantity == 0)</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>Product</th><th>SKU</th><th>Category</th><th>Location</th><th>Type</th><th>Qty</th><th>Reorder</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="@(item.Quantity == 0 ? "table-danger" : item.IsLowStock ? "table-warning" : "")">
+                    <td class="fw-medium">@item.ProductName</td>
+                    <td><code class="small">@item.SKU</code></td>
+                    <td><span class="badge bg-light text-dark">@item.CategoryName</span></td>
+                    <td>@item.LocationName</td>
+                    <td>
+                        @if (item.LocationType == SmartStock.Models.LocationType.Warehouse)
+                        { <span class="badge bg-primary">Warehouse</span> }
+                        else
+                        { <span class="badge bg-success">Store</span> }
+                    </td>
+                    <td class="fw-bold">@item.Quantity</td>
+                    <td class="text-muted">@item.ReorderLevel</td>
+                    <td>
+                        @if (item.Quantity == 0) { <span class="badge-cancelled">Out of Stock</span> }
+                        else if (item.IsLowStock) { <span class="badge-pending">Low Stock</span> }
+                        else { <span class="badge-received">OK</span> }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
