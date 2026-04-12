@@ -1,0 +1,109 @@
+@page
+@model SmartStock.Areas.Identity.Pages.Account.LoginModel
+@{
+    Layout = "/Views/Shared/_LoginLayout.cshtml";
+    ViewData["Title"] = "Sign In";
+}
+
+<div class="login-wrap">
+    <div class="login-card">
+
+        <!-- Brand -->
+        <div class="text-center mb-4">
+            <div class="brand-mark">
+                <i class="bi bi-boxes text-white"></i>
+            </div>
+            <h4 class="login-title mb-1">SmartStock</h4>
+            <p class="login-sub mb-0">Sign in to manage your inventory</p>
+        </div>
+
+        <!-- Validation errors -->
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert-login-error mb-3">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <span>@err.ErrorMessage</span>
+                }
+            </div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label class="form-label">Email address</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input name="Input.Email" class="form-control" type="email"
+                           value="@Model.Input?.Email"
+                           placeholder="you@example.com" autocomplete="email" autofocus />
+                </div>
+                <span class="text-danger small mt-1 d-block">
+                    @Html.ValidationMessage("Input.Email")
+                </span>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input name="Input.Password" class="form-control" type="password"
+                           placeholder="Enter your password" autocomplete="current-password" id="pwdInput" />
+                    <button class="btn btn-outline-secondary" type="button" id="togglePwd"
+                            style="border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.45)">
+                        <i class="bi bi-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <span class="text-danger small mt-1 d-block">
+                    @Html.ValidationMessage("Input.Password")
+                </span>
+            </div>
+
+            <!-- Remember me -->
+            <div class="mb-4">
+                <div class="form-check">
+                    <input name="Input.RememberMe" type="checkbox" class="form-check-input"
+                           id="rememberMe" value="true" />
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-signin w-100">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+        </form>
+
+        <!-- Hint box with demo credentials -->
+        <div class="hint-box">
+            <p><i class="bi bi-info-circle me-1"></i><strong style="color:rgba(255,255,255,.7)">Demo accounts:</strong></p>
+            <p>Admin: <code>admin@@smartstock.com</code> / <code>Admin@@123!</code></p>
+            <p>Warehouse: <code>warehouse@@smartstock.com</code> / <code>Warehouse@@123!</code></p>
+            <p>Store: <code>store@@smartstock.com</code> / <code>Store@@123!</code></p>
+        </div>
+    </div>
+
+    <p class="text-center mt-3" style="color:rgba(255,255,255,0.25);font-size:.75rem">
+        &copy; @DateTime.Now.Year SmartStock &mdash; Inventory Management System
+    </p>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('togglePwd').addEventListener('click', function () {
+        const input = document.getElementById('pwdInput');
+        const icon  = document.getElementById('eyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    });
+</script>
+}

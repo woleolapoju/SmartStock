@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartStock.Models;
 
 namespace SmartStock.ViewModels
@@ -24,5 +25,10 @@ namespace SmartStock.ViewModels
         public List<Sale> RecentSales { get; set; } = new();
         public List<StockTransfer> RecentTransfers { get; set; } = new();
         public List<InventoryViewModel> LowStockItems { get; set; } = new();
+
+        // Store filter
+        public int? SelectedStoreId { get; set; }
+        public string? SelectedStoreName { get; set; }
+        public List<SelectListItem> Stores { get; set; } = new();
     }
 }

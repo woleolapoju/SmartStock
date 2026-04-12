@@ -9,7 +9,7 @@ using SmartStock.ViewModels;
 namespace SmartStock.Controllers
 {
     [Authorize]
-    public class TransferController : Controller
+    public class TransferController : AppBaseController
     {
         private readonly ITransferService _transferService;
         private readonly ApplicationDbContext _db;
@@ -24,6 +24,14 @@ namespace SmartStock.Controllers
         public async Task<IActionResult> Index()
         {
             var transfers = await _transferService.GetAllAsync();
+
+            // StoreManager / Staff see only transfers going to their store
+            if (IsStoreRestricted())
+            {
+                var sid = GetUserStoreId();
+                transfers = transfers.Where(t => t.StoreId == sid);
+            }
+
             return View(transfers);
         }
 
@@ -32,6 +40,11 @@ namespace SmartStock.Controllers
         {
             var transfer = await _transferService.GetByIdAsync(id);
             if (transfer == null) return NotFound();
+
+            // StoreManager / Staff can only see transfers to their store
+            if (IsStoreRestricted() && transfer.StoreId != GetUserStoreId())
+                return Forbid();
+
             return View(transfer);
         }
 

@@ -9,7 +9,7 @@ using SmartStock.ViewModels;
 namespace SmartStock.Controllers
 {
     [Authorize]
-    public class SaleController : Controller
+    public class SaleController : AppBaseController
     {
         private readonly ISaleService _saleService;
         private readonly ApplicationDbContext _db;
@@ -23,13 +23,29 @@ namespace SmartStock.Controllers
         // GET: Sale
         public async Task<IActionResult> Index(int? storeId, DateTime? from, DateTime? to)
         {
-            var sales = await _saleService.GetAllAsync(storeId, from, to);
-            var stores = await _db.Stores.Where(s => s.IsActive).ToListAsync();
+            bool locked = IsStoreRestricted();
+            int? effectiveStoreId = locked ? GetUserStoreId() : storeId;
 
-            ViewBag.Stores = stores.Select(s => new SelectListItem(s.Name, s.Id.ToString()));
-            ViewBag.SelectedStoreId = storeId;
+            var sales = await _saleService.GetAllAsync(effectiveStoreId, from, to);
+
+            ViewBag.IsStoreLocked = locked;
+            ViewBag.SelectedStoreId = effectiveStoreId;
             ViewBag.From = from?.ToString("yyyy-MM-dd");
-            ViewBag.To = to?.ToString("yyyy-MM-dd");
+            ViewBag.To   = to?.ToString("yyyy-MM-dd");
+
+            if (locked)
+            {
+                var store = await _db.Stores.FirstOrDefaultAsync(s => s.Id == effectiveStoreId);
+                ViewBag.Stores    = store != null
+                    ? new[] { new SelectListItem(store.Name, store.Id.ToString()) }
+                    : Enumerable.Empty<SelectListItem>();
+                ViewBag.StoreName = store?.Name;
+            }
+            else
+            {
+                var stores = await _db.Stores.Where(s => s.IsActive).ToListAsync();
+                ViewBag.Stores = stores.Select(s => new SelectListItem(s.Name, s.Id.ToString()));
+            }
 
             return View(sales);
         }
@@ -39,6 +55,11 @@ namespace SmartStock.Controllers
         {
             var sale = await _saleService.GetByIdAsync(id);
             if (sale == null) return NotFound();
+
+            // StoreManager / Staff can only see sales from their assigned store
+            if (IsStoreRestricted() && sale.StoreId != GetUserStoreId())
+                return Forbid();
+
             return View(sale);
         }
 
@@ -46,7 +67,8 @@ namespace SmartStock.Controllers
         [Authorize(Roles = "Admin,StoreManager,Staff")]
         public async Task<IActionResult> Create()
         {
-            var model = await BuildCreateViewModel();
+            int? forcedStoreId = IsStoreRestricted() ? GetUserStoreId() : null;
+            var model = await BuildCreateViewModel(forcedStoreId);
             return View(model);
         }
 
@@ -55,10 +77,18 @@ namespace SmartStock.Controllers
         [Authorize(Roles = "Admin,StoreManager,Staff")]
         public async Task<IActionResult> Create(CreateSaleViewModel model)
         {
+            // Enforce store restriction on POST as well
+            if (IsStoreRestricted())
+            {
+                var allowed = GetUserStoreId();
+                if (allowed.HasValue) model.StoreId = allowed.Value;
+            }
+
             if (!ModelState.IsValid || model.Items == null || !model.Items.Any())
             {
                 ModelState.AddModelError("", "Cart must have at least one item.");
-                var rebuilt = await BuildCreateViewModel();
+                int? forcedId = IsStoreRestricted() ? GetUserStoreId() : null;
+                var rebuilt = await BuildCreateViewModel(forcedId);
                 model.Stores = rebuilt.Stores;
                 model.Products = rebuilt.Products;
                 return View(model);
@@ -74,7 +104,7 @@ namespace SmartStock.Controllers
             }
 
             foreach (var err in result.Errors) ModelState.AddModelError("", err);
-            var vm = await BuildCreateViewModel();
+            var vm = await BuildCreateViewModel(IsStoreRestricted() ? GetUserStoreId() : null);
             model.Stores = vm.Stores;
             model.Products = vm.Products;
             return View(model);
@@ -96,6 +126,10 @@ namespace SmartStock.Controllers
         {
             var sale = await _saleService.GetByIdAsync(id);
             if (sale == null) return NotFound();
+
+            if (IsStoreRestricted() && sale.StoreId != GetUserStoreId())
+                return Forbid();
+
             return View(sale);
         }
 
@@ -104,25 +138,31 @@ namespace SmartStock.Controllers
         public async Task<IActionResult> GetProductStock(int productId, int storeId)
         {
             var stock = await _db.Inventories
-                .Where(i => i.ProductId == productId && i.LocationType == Models.LocationType.Store && i.LocationId == storeId)
+                .Where(i => i.ProductId == productId
+                         && i.LocationType == Models.LocationType.Store
+                         && i.LocationId == storeId)
                 .Select(i => new { i.Quantity })
                 .FirstOrDefaultAsync();
             var product = await _db.Products.FindAsync(productId);
             return Json(new { quantity = stock?.Quantity ?? 0, price = product?.Price ?? 0 });
         }
 
-        private async Task<CreateSaleViewModel> BuildCreateViewModel()
+        private async Task<CreateSaleViewModel> BuildCreateViewModel(int? forcedStoreId = null)
         {
-            var stores = await _db.Stores.Where(s => s.IsActive).ToListAsync();
-            var products = await _db.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
+            var stores = forcedStoreId.HasValue
+                ? await _db.Stores.Where(s => s.Id == forcedStoreId && s.IsActive).ToListAsync()
+                : await _db.Stores.Where(s => s.IsActive).ToListAsync();
+
             var categories = await _db.Categories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
 
-            ViewBag.Categories = categories.Select(c => new SelectListItem(c.Name, c.Id.ToString()));
+            ViewBag.Categories   = categories.Select(c => new SelectListItem(c.Name, c.Id.ToString()));
+            ViewBag.IsStoreLocked = forcedStoreId.HasValue;
 
             return new CreateSaleViewModel
             {
-                Stores = stores.Select(s => new SelectListItem(s.Name, s.Id.ToString())),
-                Products = products.Select(p => new SelectListItem($"{p.Name} ({p.SKU})", p.Id.ToString()))
+                StoreId  = forcedStoreId ?? 0,
+                Stores   = stores.Select(s => new SelectListItem(s.Name, s.Id.ToString())),
+                Products = new List<SelectListItem>()
             };
         }
     }

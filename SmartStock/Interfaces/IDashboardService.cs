@@ -4,6 +4,6 @@ namespace SmartStock.Interfaces
 {
     public interface IDashboardService
     {
-        Task<DashboardViewModel> GetDashboardDataAsync();
+        Task<DashboardViewModel> GetDashboardDataAsync(int? storeId = null);
     }
 }

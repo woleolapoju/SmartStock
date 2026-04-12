@@ -29,11 +29,20 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// Ensure the cookie auth middleware always uses the Identity area paths
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath    = "/Identity/Account/Login";
+    options.LogoutPath   = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/Login";
+});
+
 // ── MVC ───────────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 // ── Application Services ──────────────────────────────────────────────────────
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<ITransferService, TransferService>();

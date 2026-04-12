@@ -19,23 +19,36 @@
 <!-- Filters -->
 <div class="card mb-3 p-3">
     <form method="get" class="row g-2 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small fw-semibold">Store</label>
-            <select name="storeId" class="form-select">
-                <option value="">All Stores</option>
-                @foreach (var s in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Stores)
-                {
-                    if (s.Value == ViewBag.SelectedStoreId?.ToString())
+        @if ((bool)(ViewBag.IsStoreLocked ?? false))
+        {
+            <!-- Store-restricted users: show their store as a read-only badge -->
+            <div class="col-12 col-md-auto">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2" style="font-size:.85rem">
+                    <i class="bi bi-shop me-1"></i>@ViewBag.StoreName
+                </span>
+            </div>
+            <input type="hidden" name="storeId" value="@ViewBag.SelectedStoreId" />
+        }
+        else
+        {
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Store</label>
+                <select name="storeId" class="form-select">
+                    <option value="">All Stores</option>
+                    @foreach (var s in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Stores)
                     {
-                        <option value="@s.Value" selected>@s.Text</option>
+                        if (s.Value == ViewBag.SelectedStoreId?.ToString())
+                        {
+                            <option value="@s.Value" selected>@s.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@s.Value">@s.Text</option>
+                        }
                     }
-                    else
-                    {
-                        <option value="@s.Value">@s.Text</option>
-                    }
-                }
-            </select>
-        </div>
+                </select>
+            </div>
+        }
         <div class="col-md-2">
             <label class="form-label small fw-semibold">From</label>
             <input type="date" name="from" value="@ViewBag.From" class="form-control" />
@@ -47,9 +60,12 @@
         <div class="col-md-2">
             <button type="submit" class="btn btn-primary w-100">Filter</button>
         </div>
-        <div class="col-md-2">
-            <a asp-action="Index" class="btn btn-outline-secondary w-100">Clear</a>
-        </div>
+        @if (!(bool)(ViewBag.IsStoreLocked ?? false))
+        {
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Clear</a>
+            </div>
+        }
     </form>
 </div>
 

@@ -25,9 +25,21 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label asp-for="StoreId" class="form-label fw-semibold">Store</label>
-                        <select asp-for="StoreId" asp-items="Model.Stores" class="form-select" id="storeSelect">
-                            <option value="">-- Select Store --</option>
-                        </select>
+                        @if ((bool)(ViewBag.IsStoreLocked ?? false))
+                        {
+                            <!-- Store is pre-assigned; show as read-only -->
+                            <select asp-for="StoreId" asp-items="Model.Stores" class="form-select" id="storeSelect" disabled>
+                                <option value="">-- Select Store --</option>
+                            </select>
+                            <input type="hidden" asp-for="StoreId" />
+                            <div class="form-text text-muted small"><i class="bi bi-lock me-1"></i>Locked to your assigned store</div>
+                        }
+                        else
+                        {
+                            <select asp-for="StoreId" asp-items="Model.Stores" class="form-select" id="storeSelect">
+                                <option value="">-- Select Store --</option>
+                            </select>
+                        }
                         <span asp-validation-for="StoreId" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">

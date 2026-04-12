@@ -5,7 +5,7 @@ using SmartStock.Interfaces;
 namespace SmartStock.Controllers
 {
     [Authorize]
-    public class DashboardController : Controller
+    public class DashboardController : AppBaseController
     {
         private readonly IDashboardService _dashboard;
 
@@ -14,9 +14,13 @@ namespace SmartStock.Controllers
             _dashboard = dashboard;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? storeId)
         {
-            var model = await _dashboard.GetDashboardDataAsync();
+            // StoreManager / Staff are locked to their assigned store — ignore query param
+            int? effectiveStoreId = IsStoreRestricted() ? GetUserStoreId() : storeId;
+
+            var model = await _dashboard.GetDashboardDataAsync(effectiveStoreId);
+            ViewBag.IsStoreRestricted = IsStoreRestricted();
             return View(model);
         }
     }
