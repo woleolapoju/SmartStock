@@ -102,6 +102,13 @@
                asp-controller="Store" asp-action="Index">
                 <i class="bi bi-shop"></i> Stores
             </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")"
+                   asp-controller="User" asp-action="Index">
+                    <i class="bi bi-people"></i> Users
+                </a>
+            }
 
             <div class="nav-section mt-2">Reports</div>
             <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Sales" ? "active" : "")"
