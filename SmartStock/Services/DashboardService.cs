@@ -19,28 +19,25 @@ namespace SmartStock.Services
         {
             var today = DateTime.UtcNow.Date;
 
-            // KPIs — run in parallel
-            var totalProductsTask = _db.Products.CountAsync(p => p.IsActive);
-            var totalStoresTask = _db.Stores.CountAsync(s => s.IsActive);
-            var totalWarehousesTask = _db.Warehouses.CountAsync(w => w.IsActive);
-            var totalStockTask = _db.Inventories.SumAsync(i => (long)i.Quantity);
-            var lowStockTask = _db.Inventories.CountAsync(i => i.Quantity <= i.ReorderLevel && i.Product.IsActive);
-            var todaySalesTask = _db.Sales.Where(s => s.SaleDate >= today && s.Status == SaleStatus.Completed)
+            // KPIs — sequential: EF Core DbContext is not thread-safe
+            var totalProducts = await _db.Products.CountAsync(p => p.IsActive);
+            var totalStores = await _db.Stores.CountAsync(s => s.IsActive);
+            var totalWarehouses = await _db.Warehouses.CountAsync(w => w.IsActive);
+            var totalStock = await _db.Inventories.SumAsync(i => (long)i.Quantity);
+            var lowStockCount = await _db.Inventories.CountAsync(i => i.Quantity <= i.ReorderLevel && i.Product.IsActive);
+            var todaySales = await _db.Sales
+                .Where(s => s.SaleDate >= today && s.Status == SaleStatus.Completed)
                 .GroupBy(_ => 1)
                 .Select(g => new { Amount = g.Sum(s => s.TotalAmount), Count = g.Count() })
                 .FirstOrDefaultAsync();
-            var pendingTransfersTask = _db.StockTransfers.CountAsync(t =>
+            var pendingTransfers = await _db.StockTransfers.CountAsync(t =>
                 t.Status == TransferStatus.Pending || t.Status == TransferStatus.Approved);
-
-//            await Task.WhenAll(totalProductsTask, totalStoresTask, totalWarehousesTask,
-      //          totalStockTask, lowStockTask, todaySalesTask, pendingTransfersTask);
-
-            var todaySales = await todaySalesTask;
 
             // Monthly sales chart — last 6 months
             var sixMonthsAgo = DateTime.UtcNow.AddMonths(-5);
             var monthlySales = await _db.Sales
-                .Where(s => s.SaleDate >= new DateTime(sixMonthsAgo.Year, sixMonthsAgo.Month, 1) && s.Status == SaleStatus.Completed)
+                .Where(s => s.SaleDate >= new DateTime(sixMonthsAgo.Year, sixMonthsAgo.Month, 1)
+                         && s.Status == SaleStatus.Completed)
                 .GroupBy(s => new { s.SaleDate.Year, s.SaleDate.Month })
                 .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(s => s.TotalAmount) })
                 .OrderBy(x => x.Year).ThenBy(x => x.Month)
@@ -95,7 +92,6 @@ namespace SmartStock.Services
                 })
                 .ToListAsync();
 
-            // Resolve location names
             foreach (var item in lowStockItems)
             {
                 item.LocationName = item.LocationType == LocationType.Warehouse
@@ -105,14 +101,14 @@ namespace SmartStock.Services
 
             return new DashboardViewModel
             {
-                TotalProducts = await totalProductsTask,
-                TotalStores = await totalStoresTask,
-                TotalWarehouses = await totalWarehousesTask,
-                TotalStockUnits = await totalStockTask,
-                LowStockCount = await lowStockTask,
+                TotalProducts = totalProducts,
+                TotalStores = totalStores,
+                TotalWarehouses = totalWarehouses,
+                TotalStockUnits = totalStock,
+                LowStockCount = lowStockCount,
                 TodaySalesAmount = todaySales?.Amount ?? 0,
                 TodaySalesCount = todaySales?.Count ?? 0,
-                PendingTransfers = await pendingTransfersTask,
+                PendingTransfers = pendingTransfers,
 
                 MonthlySalesLabels = monthlySales
                     .Select(m => new DateTime(m.Year, m.Month, 1).ToString("MMM yy"))

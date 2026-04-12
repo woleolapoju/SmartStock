@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Warehouse Inventory";
     var warehouseId = (int)(ViewBag.SelectedWarehouseId ?? 0);
+    bool canEdit = User.IsInRole("Admin") || User.IsInRole("WarehouseManager");
 }
 
 <div class="page-hero d-flex justify-content-between align-items-center">
@@ -11,21 +12,16 @@
         <p class="text-muted mb-0 small">@Model.Count() SKUs tracked</p>
     </div>
     <div class="d-flex gap-2">
-        <a asp-action="Store" class="btn btn-outline-secondary">
-            <i class="bi bi-shop me-1"></i>Store View
-        </a>
-        <a asp-action="LowStock" class="btn btn-outline-warning">
-            <i class="bi bi-exclamation-triangle me-1"></i>Low Stock
-        </a>
+        <a asp-action="Store" class="btn btn-outline-secondary"><i class="bi bi-shop me-1"></i>Store View</a>
+        <a asp-action="LowStock" class="btn btn-outline-warning"><i class="bi bi-exclamation-triangle me-1"></i>Low Stock</a>
     </div>
 </div>
 
-<!-- Warehouse Selector -->
 <div class="card mb-3 p-3">
     <form method="get" class="row g-2 align-items-end">
         <div class="col-md-4">
             <label class="form-label small fw-semibold">Select Warehouse</label>
-            <select name="warehouseId" class="form-select" asp-items="ViewBag.Warehouses" onchange="this.form.submit()"></select>
+            <select name="warehouseId" class="form-select" asp-items="ViewBag.Warehouses" onchange="this.form.submit()" data-skip-select2="true"></select>
         </div>
     </form>
 </div>
@@ -36,9 +32,10 @@
             <thead class="table-light">
                 <tr>
                     <th>Product</th><th>SKU</th><th>Category</th>
-                    <th>Quantity</th><th>Reorder Level</th><th>Status</th><th>Last Updated</th>
-                    @if (User.IsInRole("Admin") || User.IsInRole("WarehouseManager"))
-                    { <th></th> }
+                    <th>Quantity</th>
+                    <th>Reorder Level</th>
+                    <th>Status</th><th>Last Updated</th>
+                    @if (canEdit) { <th style="width:90px"></th> }
                 </tr>
             </thead>
             <tbody>
@@ -49,19 +46,34 @@
                     <td><code class="small">@item.SKU</code></td>
                     <td><span class="badge bg-light text-dark">@item.CategoryName</span></td>
                     <td>
-                        <span class="fw-bold @(item.IsLowStock ? "text-danger" : "text-success")">
-                            @item.Quantity
-                        </span>
+                        <span class="fw-bold @(item.IsLowStock ? "text-danger" : "text-success")">@item.Quantity</span>
                     </td>
-                    <td class="text-muted">@item.ReorderLevel</td>
                     <td>
-                        @if (item.IsLowStock)
-                        { <span class="badge-cancelled">Low Stock</span> }
+                        @if (canEdit)
+                        {
+                            <form asp-action="UpdateReorderLevel" method="post" class="d-flex gap-1 align-items-center">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="inventoryId" value="@item.InventoryId" />
+                                <input type="hidden" name="locationType" value="@((int)item.LocationType)" />
+                                <input type="hidden" name="locationId" value="@warehouseId" />
+                                <input type="number" name="reorderLevel" value="@item.ReorderLevel"
+                                       class="form-control form-control-sm" style="width:70px" min="0" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Save reorder level">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                        }
                         else
-                        { <span class="badge-received">OK</span> }
+                        {
+                            <span class="text-muted">@item.ReorderLevel</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.IsLowStock) { <span class="badge-cancelled">Low Stock</span> }
+                        else { <span class="badge-received">OK</span> }
                     </td>
                     <td class="text-muted small">@item.LastUpdated.ToString("MM/dd HH:mm")</td>
-                    @if (User.IsInRole("Admin") || User.IsInRole("WarehouseManager"))
+                    @if (canEdit)
                     {
                         <td>
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
@@ -86,8 +98,7 @@
     </div>
 </div>
 
-<!-- Adjust Modal -->
-@if (User.IsInRole("Admin") || User.IsInRole("WarehouseManager"))
+@if (canEdit)
 {
     <div class="modal fade" id="adjustModal" tabindex="-1">
         <div class="modal-dialog">
@@ -105,13 +116,12 @@
                         <p class="text-muted small">Current quantity: <strong id="adj-currentQty"></strong></p>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Quantity Change</label>
-                            <input type="number" name="QuantityChange" class="form-control"
-                                   placeholder="Use negative to deduct (e.g. -5)" required />
-                            <div class="form-text">Positive = add stock, Negative = remove stock</div>
+                            <input type="number" name="QuantityChange" class="form-control no-select2"
+                                   placeholder="Positive = add, Negative = remove" required />
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Reason</label>
-                            <input type="text" name="Reason" class="form-control" placeholder="Shrinkage, damage, correction..." />
+                            <input type="text" name="Reason" class="form-control" placeholder="Shrinkage, correction..." />
                         </div>
                     </div>
                     <div class="modal-footer">

@@ -22,6 +22,7 @@ namespace SmartStock.Services
                 .Include(t => t.Warehouse)
                 .Include(t => t.Store)
                 .Include(t => t.CreatedBy)
+                .Include(t => t.Items)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
 

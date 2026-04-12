@@ -21,7 +21,6 @@ namespace SmartStock.Controllers
             _db = db;
         }
 
-        // GET: Inventory — Warehouse view
         public async Task<IActionResult> Warehouse(int? warehouseId)
         {
             var warehouses = await _db.Warehouses.Where(w => w.IsActive).ToListAsync();
@@ -37,7 +36,6 @@ namespace SmartStock.Controllers
             return View(inventory);
         }
 
-        // GET: Inventory/Store
         public async Task<IActionResult> Store(int? storeId)
         {
             var stores = await _db.Stores.Where(s => s.IsActive).ToListAsync();
@@ -53,14 +51,12 @@ namespace SmartStock.Controllers
             return View(inventory);
         }
 
-        // GET: Inventory/LowStock
         public async Task<IActionResult> LowStock()
         {
             var items = await _inventoryService.GetLowStockItemsAsync();
             return View(items);
         }
 
-        // POST: Inventory/Adjust
         [HttpPost, ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,WarehouseManager,StoreManager")]
         public async Task<IActionResult> Adjust(StockAdjustmentViewModel model)
@@ -71,7 +67,8 @@ namespace SmartStock.Controllers
             }
             else
             {
-                var result = await _inventoryService.AdjustStockAsync(model);
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var result = await _inventoryService.AdjustStockAsync(model, userId);
                 TempData[result.Success ? "Success" : "Error"] =
                     result.Success ? result.Message : result.Errors.FirstOrDefault();
             }
@@ -80,6 +77,20 @@ namespace SmartStock.Controllers
                 return RedirectToAction(nameof(Warehouse), new { warehouseId = model.LocationId });
             else
                 return RedirectToAction(nameof(Store), new { storeId = model.LocationId });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,WarehouseManager,StoreManager")]
+        public async Task<IActionResult> UpdateReorderLevel(int inventoryId, int reorderLevel, LocationType locationType, int locationId)
+        {
+            var result = await _inventoryService.UpdateReorderLevelAsync(inventoryId, reorderLevel);
+            TempData[result.Success ? "Success" : "Error"] =
+                result.Success ? result.Message : result.Errors.FirstOrDefault();
+
+            if (locationType == LocationType.Warehouse)
+                return RedirectToAction(nameof(Warehouse), new { warehouseId = locationId });
+            else
+                return RedirectToAction(nameof(Store), new { storeId = locationId });
         }
     }
 }

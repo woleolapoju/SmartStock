@@ -1,6 +1,7 @@
 @model SmartStock.ViewModels.CreatePurchaseViewModel
 @{
     ViewData["Title"] = "Create Purchase Order";
+    var categories = ViewBag.Categories as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
 }
 
 <div class="page-hero">
@@ -40,9 +41,14 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-semibold mb-0">Order Items</h6>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
-                        <i class="bi bi-plus-lg me-1"></i>Add Item
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#quickProductModal">
+                            <i class="bi bi-plus-circle me-1"></i>Register New Product
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addItemBtn">
+                            <i class="bi bi-plus-lg me-1"></i>Add Item
+                        </button>
+                    </div>
                 </div>
                 <div id="summaryTotal" class="text-end fw-bold fs-6 mb-3 text-primary">Total: $0.00</div>
                 <div id="itemsContainer"></div>
@@ -58,12 +64,75 @@
     </div>
 </div>
 
+<!-- Quick Product Registration Modal -->
+<div class="modal fade" id="quickProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Register New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="quickProductError" class="alert alert-danger d-none"></div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                        <select id="qp-category" class="form-select" data-skip-select2="true">
+                            <option value="">-- Select Category --</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c.Value">@c.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+                        <input type="text" id="qp-name" class="form-control" placeholder="Enter product name..." />
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">SKU</label>
+                        <input type="text" id="qp-sku" class="form-control" placeholder="Leave blank to auto-generate" />
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-secondary w-100" id="qp-generateSku">
+                            <i class="bi bi-magic me-1"></i>Generate
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Cost Price ($) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="qp-costPrice" class="form-control" step="0.01" min="0.01" placeholder="0.00" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Selling Price ($) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="qp-price" class="form-control" step="0.01" min="0.01" placeholder="0.00" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="qp-submitBtn">
+                    <i class="bi bi-check-circle me-1"></i>Register Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
-    const products = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        Model.Products.Select(p => new { value = p.Value, text = p.Text })
+    const categories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        categories.Select(c => new { value = c.Value, text = c.Text })
     ));
     let itemIndex = 0;
+
+    // Stores the last registered product so it can be pre-selected after registration
+    let lastRegisteredProduct = null;
 
     function recalculate() {
         let total = 0;
@@ -75,40 +144,175 @@
         document.getElementById('summaryTotal').textContent = 'Total: $' + total.toFixed(2);
     }
 
-    function addItem() {
+    async function loadProducts(categoryId) {
+        const url = `/api/products/for-purchase${categoryId ? '?categoryId=' + categoryId : ''}`;
+        const res = await fetch(url);
+        return res.ok ? await res.json() : [];
+    }
+
+    async function addItem(preselect) {
         const container = document.getElementById('itemsContainer');
         const idx = itemIndex++;
         const div = document.createElement('div');
         div.className = 'row g-2 align-items-end mb-3 item-row border-bottom pb-3';
         div.innerHTML = `
-            <div class="col-md-6">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Category</label>
+                <select class="form-select category-select" id="cat-${idx}" data-idx="${idx}"
+                        data-skip-select2="true">
+                    <option value="">All categories</option>
+                    ${categories.map(c => `<option value="${c.value}">${c.text}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-md-4">
                 <label class="form-label small fw-semibold">Product</label>
-                <select name="Items[${idx}].ProductId" class="form-select" required>
-                    <option value="">-- Select --</option>
-                    ${products.map(p => `<option value="${p.value}">${p.text}</option>`).join('')}
+                <select name="Items[${idx}].ProductId" class="form-select product-select" id="prod-${idx}" required
+                        data-skip-select2="true">
+                    <option value="">Loading...</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label class="form-label small fw-semibold">Qty</label>
                 <input type="number" name="Items[${idx}].Quantity" class="form-control qty-input" min="1" value="1" required oninput="recalculate()" />
             </div>
-            <div class="col-md-3">
-                <label class="form-label small fw-semibold">Unit Cost</label>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Unit Cost ($)</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" name="Items[${idx}].UnitCost" class="form-control cost-input" step="0.01" min="0.01" required oninput="recalculate()" />
+                    <input type="number" name="Items[${idx}].UnitCost" class="form-control cost-input no-select2" step="0.01" min="0.01" required oninput="recalculate()" />
                 </div>
             </div>
             <div class="col-md-1">
+                <label class="form-label small fw-semibold">&nbsp;</label>
                 <button type="button" class="btn btn-outline-danger w-100" onclick="this.closest('.item-row').remove(); recalculate()">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
         `;
         container.appendChild(div);
+
+        $(`#cat-${idx}`).select2({ theme: 'bootstrap-5', width: '100%', placeholder: 'All categories', allowClear: true });
+        $(`#prod-${idx}`).select2({ theme: 'bootstrap-5', width: '100%', placeholder: 'Select product', allowClear: true });
+
+        $(`#cat-${idx}`).on('change', async function() {
+            await refreshProducts(idx, this.value, null);
+        });
+
+        $(`#prod-${idx}`).on('change', function() {
+            const sel = document.getElementById(`prod-${idx}`);
+            const opt = sel.options[sel.selectedIndex];
+            if (opt && opt.dataset.cost) {
+                sel.closest('.item-row').querySelector('.cost-input').value = parseFloat(opt.dataset.cost).toFixed(2);
+                recalculate();
+            }
+        });
+
+        await refreshProducts(idx, '', preselect ?? null);
+        recalculate();
     }
 
-    document.getElementById('addItemBtn').addEventListener('click', addItem);
-    addItem();
+    async function refreshProducts(idx, categoryId, preselectId) {
+        const sel = document.getElementById(`prod-${idx}`);
+        const products = await loadProducts(categoryId);
+        sel.innerHTML = products.length
+            ? products.map(p => `<option value="${p.id}" data-cost="${p.costPrice}">${p.name} (${p.sku})</option>`).join('')
+            : '<option value="">No products found</option>';
+
+        if (preselectId) {
+            sel.value = preselectId;
+        }
+
+        if (products.length) {
+            const row = sel.closest('.item-row');
+            const selected = products.find(p => p.id == (preselectId ?? products[0].id)) ?? products[0];
+            row.querySelector('.cost-input').value = parseFloat(selected.costPrice).toFixed(2);
+        }
+
+        $(`#prod-${idx}`).trigger('change');
+        recalculate();
+    }
+
+    // Quick product registration
+    document.getElementById('qp-generateSku').addEventListener('click', async function() {
+        const catId = document.getElementById('qp-category').value;
+        if (!catId) { alert('Select a category first.'); return; }
+        const res = await fetch(`/api/products/generate-sku?categoryId=${catId}`);
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('qp-sku').value = data.sku;
+        }
+    });
+
+    document.getElementById('qp-category').addEventListener('change', async function() {
+        // Auto-generate SKU preview when category changes
+        const catId = this.value;
+        if (!catId) return;
+        const res = await fetch(`/api/products/generate-sku?categoryId=${catId}`);
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('qp-sku').value = data.sku;
+        }
+    });
+
+    document.getElementById('qp-submitBtn').addEventListener('click', async function() {
+        const name = document.getElementById('qp-name').value.trim();
+        const catId = parseInt(document.getElementById('qp-category').value);
+        const sku = document.getElementById('qp-sku').value.trim();
+        const costPrice = parseFloat(document.getElementById('qp-costPrice').value);
+        const price = parseFloat(document.getElementById('qp-price').value);
+        const errDiv = document.getElementById('quickProductError');
+
+        errDiv.classList.add('d-none');
+
+        if (!name || !catId || !costPrice || !price) {
+            errDiv.textContent = 'Name, Category, Cost Price, and Selling Price are required.';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Registering...';
+
+        try {
+            const res = await fetch('/api/products/quick-create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, sku: sku || null, costPrice, price, categoryId: catId })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                errDiv.textContent = data.error || 'Failed to register product.';
+                errDiv.classList.remove('d-none');
+                return;
+            }
+
+            lastRegisteredProduct = data;
+
+            // Close modal and add a new item row pre-selected to the new product
+            bootstrap.Modal.getInstance(document.getElementById('quickProductModal')).hide();
+
+            // Reset form
+            document.getElementById('qp-name').value = '';
+            document.getElementById('qp-sku').value = '';
+            document.getElementById('qp-costPrice').value = '';
+            document.getElementById('qp-price').value = '';
+            document.getElementById('qp-category').value = '';
+
+            // Add item row with new product pre-selected
+            await addItem(data.id);
+
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Register Product';
+        }
+    });
+
+    // Initialize category Select2 in the modal
+    $('#qp-category').select2({ theme: 'bootstrap-5', width: '100%', placeholder: '-- Select Category --', dropdownParent: $('#quickProductModal') });
+
+    document.getElementById('addItemBtn').addEventListener('click', () => addItem(null));
+    addItem(null);
 </script>
 }

@@ -44,13 +44,19 @@ namespace SmartStock.Services
 
         public async Task<ServiceResult> CreateAsync(ProductViewModel model)
         {
+            // Auto-generate SKU if not provided
+            if (string.IsNullOrWhiteSpace(model.SKU))
+                model.SKU = await GenerateSkuAsync(model.CategoryId);
+
+            model.SKU = model.SKU.ToUpper().Trim();
+
             if (await _db.Products.AnyAsync(p => p.SKU == model.SKU))
                 return ServiceResult.Fail($"SKU '{model.SKU}' already exists.");
 
             var product = new Product
             {
                 Name = model.Name,
-                SKU = model.SKU.ToUpper().Trim(),
+                SKU = model.SKU,
                 Barcode = model.Barcode,
                 Description = model.Description,
                 Price = model.Price,
@@ -109,5 +115,30 @@ namespace SmartStock.Services
 
         public async Task<IEnumerable<Category>> GetCategoriesAsync() =>
             await _db.Categories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+
+        public Task<string> GenerateSkuForCategoryAsync(int categoryId) => GenerateSkuAsync(categoryId);
+
+        private async Task<string> GenerateSkuAsync(int categoryId)
+        {
+            var category = await _db.Categories.FindAsync(categoryId);
+            var raw = (category?.Name ?? "PROD").ToUpper().Replace(" ", "").Replace("&", "");
+            var prefix = raw.Length >= 4 ? raw[..4] : raw.PadRight(4, 'X');
+
+            // Find the highest numeric suffix for this prefix
+            var existing = await _db.Products
+                .Where(p => p.SKU.StartsWith(prefix + "-"))
+                .Select(p => p.SKU)
+                .ToListAsync();
+
+            int nextNum = 1;
+            foreach (var sku in existing)
+            {
+                var parts = sku.Split('-');
+                if (parts.Length >= 2 && int.TryParse(parts[^1], out int n) && n >= nextNum)
+                    nextNum = n + 1;
+            }
+
+            return $"{prefix}-{nextNum:D3}";
+        }
     }
 }

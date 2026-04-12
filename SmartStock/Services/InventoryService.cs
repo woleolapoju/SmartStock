@@ -22,7 +22,7 @@ namespace SmartStock.Services
             var warehouse = await _db.Warehouses.FindAsync(warehouseId);
             return await _db.Inventories
                 .Include(i => i.Product).ThenInclude(p => p.Category)
-                .Where(i => i.LocationType == LocationType.Warehouse && i.LocationId == warehouseId)
+                .Where(i => i.LocationType == LocationType.Warehouse && i.LocationId == warehouseId && i.Product.IsActive)
                 .Select(i => new InventoryViewModel
                 {
                     InventoryId = i.Id,
@@ -46,7 +46,7 @@ namespace SmartStock.Services
             var store = await _db.Stores.FindAsync(storeId);
             return await _db.Inventories
                 .Include(i => i.Product).ThenInclude(p => p.Category)
-                .Where(i => i.LocationType == LocationType.Store && i.LocationId == storeId)
+                .Where(i => i.LocationType == LocationType.Store && i.LocationId == storeId && i.Product.IsActive)
                 .Select(i => new InventoryViewModel
                 {
                     InventoryId = i.Id,
@@ -67,7 +67,6 @@ namespace SmartStock.Services
 
         public async Task<IEnumerable<InventoryViewModel>> GetLowStockItemsAsync()
         {
-            // Load warehouses and stores for name resolution
             var warehouses = await _db.Warehouses.ToDictionaryAsync(w => w.Id, w => w.Name);
             var stores = await _db.Stores.ToDictionaryAsync(s => s.Id, s => s.Name);
 
@@ -100,7 +99,7 @@ namespace SmartStock.Services
                 i.LocationType == locationType &&
                 i.LocationId == locationId);
 
-        public async Task<ServiceResult> AdjustStockAsync(StockAdjustmentViewModel model)
+        public async Task<ServiceResult> AdjustStockAsync(StockAdjustmentViewModel model, string? userId = null)
         {
             var inventory = await GetInventoryAsync(model.ProductId, model.LocationType, model.LocationId);
             if (inventory == null)
@@ -108,7 +107,21 @@ namespace SmartStock.Services
 
             var newQty = inventory.Quantity + model.QuantityChange;
             if (newQty < 0)
-                return ServiceResult.Fail($"Insufficient stock. Current: {inventory.Quantity}, Requested: {Math.Abs(model.QuantityChange)}");
+                return ServiceResult.Fail($"Insufficient stock. Current: {inventory.Quantity}, Requested deduction: {Math.Abs(model.QuantityChange)}");
+
+            // Log the adjustment
+            _db.StockAdjustmentLogs.Add(new StockAdjustmentLog
+            {
+                ProductId = model.ProductId,
+                LocationType = model.LocationType,
+                LocationId = model.LocationId,
+                QuantityBefore = inventory.Quantity,
+                QuantityChange = model.QuantityChange,
+                QuantityAfter = newQty,
+                Reason = model.Reason,
+                AdjustedByUserId = userId,
+                AdjustedAt = DateTime.UtcNow
+            });
 
             inventory.Quantity = newQty;
             inventory.LastUpdated = DateTime.UtcNow;
@@ -118,6 +131,21 @@ namespace SmartStock.Services
                 model.ProductId, model.LocationType, model.LocationId, model.QuantityChange);
 
             return ServiceResult.Ok($"Stock adjusted. New quantity: {newQty}");
+        }
+
+        public async Task<ServiceResult> UpdateReorderLevelAsync(int inventoryId, int reorderLevel)
+        {
+            if (reorderLevel < 0)
+                return ServiceResult.Fail("Reorder level cannot be negative.");
+
+            var inventory = await _db.Inventories.FindAsync(inventoryId);
+            if (inventory == null)
+                return ServiceResult.Fail("Inventory record not found.");
+
+            inventory.ReorderLevel = reorderLevel;
+            inventory.LastUpdated = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            return ServiceResult.Ok("Reorder level updated.");
         }
 
         public async Task<ServiceResult> EnsureInventoryRowAsync(int productId, LocationType locationType, int locationId, int reorderLevel = 10)
@@ -136,6 +164,23 @@ namespace SmartStock.Services
             });
             await _db.SaveChangesAsync();
             return ServiceResult.Ok();
+        }
+
+        public async Task<IEnumerable<StockAdjustmentLog>> GetAdjustmentLogsAsync(
+            DateTime? from, DateTime? to, int? productId, LocationType? locationType, int? locationId)
+        {
+            var query = _db.StockAdjustmentLogs
+                .Include(l => l.Product).ThenInclude(p => p.Category)
+                .Include(l => l.AdjustedBy)
+                .AsQueryable();
+
+            if (from.HasValue) query = query.Where(l => l.AdjustedAt >= from.Value);
+            if (to.HasValue) query = query.Where(l => l.AdjustedAt <= to.Value.AddDays(1));
+            if (productId.HasValue) query = query.Where(l => l.ProductId == productId.Value);
+            if (locationType.HasValue) query = query.Where(l => l.LocationType == locationType.Value);
+            if (locationId.HasValue) query = query.Where(l => l.LocationId == locationId.Value);
+
+            return await query.OrderByDescending(l => l.AdjustedAt).ToListAsync();
         }
     }
 }

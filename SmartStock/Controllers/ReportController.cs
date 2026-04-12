@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartStock.Data;
+using SmartStock.Interfaces;
 using SmartStock.Models;
 using SmartStock.ViewModels;
 
@@ -12,10 +13,12 @@ namespace SmartStock.Controllers
     public class ReportController : Controller
     {
         private readonly ApplicationDbContext _db;
+        private readonly IInventoryService _inventoryService;
 
-        public ReportController(ApplicationDbContext db)
+        public ReportController(ApplicationDbContext db, IInventoryService inventoryService)
         {
             _db = db;
+            _inventoryService = inventoryService;
         }
 
         // GET: Report/Sales
@@ -105,6 +108,41 @@ namespace SmartStock.Controllers
                 .Select(s => new SelectListItem(s.ToString(), ((int)s).ToString()));
 
             return View(transfers);
+        }
+
+        // GET: Report/AdjustmentLog
+        public async Task<IActionResult> AdjustmentLog(DateTime? from, DateTime? to, int? productId, LocationType? locationType, int? locationId)
+        {
+            from ??= DateTime.UtcNow.AddDays(-30);
+            to ??= DateTime.UtcNow;
+
+            var logs = await _inventoryService.GetAdjustmentLogsAsync(from, to.Value.AddDays(1), productId, locationType, locationId);
+
+            var products = await _db.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
+            var warehouses = await _db.Warehouses.Where(w => w.IsActive).OrderBy(w => w.Name).ToListAsync();
+            var stores = await _db.Stores.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
+
+            ViewBag.From = from.Value.ToString("yyyy-MM-dd");
+            ViewBag.To = to.Value.ToString("yyyy-MM-dd");
+            ViewBag.SelectedProductId = productId;
+            ViewBag.SelectedLocationType = locationType;
+            ViewBag.SelectedLocationId = locationId;
+            ViewBag.Products = products.Select(p => new SelectListItem($"{p.Name} ({p.SKU})", p.Id.ToString()));
+            ViewBag.LocationTypeOptions = new[]
+            {
+                new SelectListItem("Warehouse", "1"),
+                new SelectListItem("Store", "2")
+            };
+            ViewBag.Warehouses = warehouses.Select(w => new SelectListItem(w.Name, w.Id.ToString()));
+            ViewBag.Stores = stores.Select(s => new SelectListItem(s.Name, s.Id.ToString()));
+
+            // Build location name lookup
+            var warehouseNames = warehouses.ToDictionary(w => w.Id, w => w.Name);
+            var storeNames = stores.ToDictionary(s => s.Id, s => s.Name);
+            ViewBag.WarehouseNames = warehouseNames;
+            ViewBag.StoreNames = storeNames;
+
+            return View(logs);
         }
     }
 }

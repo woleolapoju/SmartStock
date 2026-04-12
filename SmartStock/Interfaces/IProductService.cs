@@ -12,5 +12,6 @@ namespace SmartStock.Interfaces
         Task<ServiceResult> UpdateAsync(int id, ProductViewModel model);
         Task<ServiceResult> DeleteAsync(int id);
         Task<IEnumerable<Category>> GetCategoriesAsync();
+        Task<string> GenerateSkuForCategoryAsync(int categoryId);
     }
 }

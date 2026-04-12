@@ -23,6 +23,7 @@ namespace SmartStock.Data
         public DbSet<SaleItem> SaleItems { get; set; }
         public DbSet<Purchase> Purchases { get; set; }
         public DbSet<PurchaseItem> PurchaseItems { get; set; }
+        public DbSet<StockAdjustmentLog> StockAdjustmentLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -165,6 +166,23 @@ namespace SmartStock.Data
                     .WithMany(p => p.PurchaseItems)
                     .HasForeignKey(i => i.ProductId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── StockAdjustmentLog ────────────────────────────────────────────────
+            builder.Entity<StockAdjustmentLog>(e =>
+            {
+                e.HasIndex(l => new { l.ProductId, l.AdjustedAt });
+                e.HasIndex(l => new { l.LocationType, l.LocationId });
+
+                e.HasOne(l => l.Product)
+                    .WithMany()
+                    .HasForeignKey(l => l.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(l => l.AdjustedBy)
+                    .WithMany()
+                    .HasForeignKey(l => l.AdjustedByUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ── ApplicationUser ───────────────────────────────────────────────────

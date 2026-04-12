@@ -11,8 +11,8 @@ namespace SmartStock.ViewModels
         [Display(Name = "Product Name")]
         public string Name { get; set; } = string.Empty;
 
-        [Required, MaxLength(50)]
-        public string SKU { get; set; } = string.Empty;
+        [MaxLength(50)]
+        public string? SKU { get; set; } = string.Empty;
 
         [MaxLength(50)]
         public string? Barcode { get; set; }
