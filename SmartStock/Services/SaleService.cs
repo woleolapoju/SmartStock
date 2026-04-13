@@ -10,11 +10,13 @@ namespace SmartStock.Services
     {
         private readonly ApplicationDbContext _db;
         private readonly ILogger<SaleService> _logger;
+        private readonly ISystemParameterService _sysParams;
 
-        public SaleService(ApplicationDbContext db, ILogger<SaleService> logger)
+        public SaleService(ApplicationDbContext db, ILogger<SaleService> logger, ISystemParameterService sysParams)
         {
             _db = db;
             _logger = logger;
+            _sysParams = sysParams;
         }
 
         public async Task<IEnumerable<Sale>> GetAllAsync(int? storeId = null, DateTime? from = null, DateTime? to = null)
@@ -69,7 +71,8 @@ namespace SmartStock.Services
                 }).ToList();
 
                 var subTotal = saleItems.Sum(i => i.LineTotal);
-                const decimal taxRate = 0.08m; // 8% tax
+                var sysParam = await _sysParams.GetAsync();
+                decimal taxRate = sysParam.TaxRate / 100m;
                 var taxAmount = subTotal * taxRate;
                 var total = subTotal + taxAmount - model.Discount;
 

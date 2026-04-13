@@ -138,7 +138,10 @@ namespace SmartStock.Controllers
             var warehouses = await _db.Warehouses.Where(w => w.IsActive).ToListAsync();
             var stores = await _db.Stores.Where(s => s.IsActive).ToListAsync();
             var products = await _db.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
-            var categories = await _db.Categories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+            var categories = await _db.Categories
+                .Where(c => c.IsActive && c.Products.Any(p => p.IsActive &&
+                    p.Inventories.Any(i => i.LocationType == Models.LocationType.Warehouse && i.Quantity > 0)))
+                .OrderBy(c => c.Name).ToListAsync();
 
             ViewBag.Categories = categories.Select(c => new SelectListItem(c.Name, c.Id.ToString()));
 

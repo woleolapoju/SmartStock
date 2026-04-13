@@ -24,6 +24,7 @@ namespace SmartStock.Data
         public DbSet<Purchase> Purchases { get; set; }
         public DbSet<PurchaseItem> PurchaseItems { get; set; }
         public DbSet<StockAdjustmentLog> StockAdjustmentLogs { get; set; }
+        public DbSet<SystemParameter> SystemParameters { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -183,6 +184,25 @@ namespace SmartStock.Data
                     .WithMany()
                     .HasForeignKey(l => l.AdjustedByUserId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ── SystemParameter ───────────────────────────────────────────────────
+            builder.Entity<SystemParameter>(e =>
+            {
+                e.Property(sp => sp.TaxRate).HasPrecision(5, 2);
+
+                e.HasOne(sp => sp.UpdatedBy)
+                    .WithMany()
+                    .HasForeignKey(sp => sp.UpdatedByUserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasData(new SystemParameter
+                {
+                    Id = 1,
+                    OwnerName = "SmartStock",
+                    TaxRate = 8.0m,
+                    UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                });
             });
 
             // ── ApplicationUser ───────────────────────────────────────────────────

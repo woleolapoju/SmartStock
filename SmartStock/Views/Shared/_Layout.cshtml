@@ -1,3 +1,5 @@
+@inject SmartStock.Interfaces.ISystemParameterService _sysParamSvc
+@{ var _sysParam = await _sysParamSvc.GetAsync(); }
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,6 +110,10 @@
                    asp-controller="User" asp-action="Index">
                     <i class="bi bi-people"></i> Users
                 </a>
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "SystemParameter" ? "active" : "")"
+                   asp-controller="SystemParameter" asp-action="Index">
+                    <i class="bi bi-gear"></i> System Parameters
+                </a>
             }
 
             <div class="nav-section mt-2">Reports</div>
@@ -130,6 +136,7 @@
         <div class="topbar d-flex justify-content-between align-items-center">
             <div>
                 <span class="text-muted small">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</span>
+                <span class="text-muted small ms-3">Licensed to: <h2>@_sysParam.OwnerName</h2></span>
             </div>
             <div class="d-flex align-items-center gap-3">
                 @if (User.IsInRole("Admin"))

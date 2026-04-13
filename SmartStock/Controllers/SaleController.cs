@@ -13,11 +13,13 @@ namespace SmartStock.Controllers
     {
         private readonly ISaleService _saleService;
         private readonly ApplicationDbContext _db;
+        private readonly ISystemParameterService _sysParams;
 
-        public SaleController(ISaleService saleService, ApplicationDbContext db)
+        public SaleController(ISaleService saleService, ApplicationDbContext db, ISystemParameterService sysParams)
         {
             _saleService = saleService;
             _db = db;
+            _sysParams = sysParams;
         }
 
         // GET: Sale
@@ -153,10 +155,15 @@ namespace SmartStock.Controllers
                 ? await _db.Stores.Where(s => s.Id == forcedStoreId && s.IsActive).ToListAsync()
                 : await _db.Stores.Where(s => s.IsActive).ToListAsync();
 
-            var categories = await _db.Categories.Where(c => c.IsActive).OrderBy(c => c.Name).ToListAsync();
+            var categories = await _db.Categories
+                .Where(c => c.IsActive && c.Products.Any(p => p.IsActive))
+                .OrderBy(c => c.Name).ToListAsync();
 
-            ViewBag.Categories   = categories.Select(c => new SelectListItem(c.Name, c.Id.ToString()));
+            var sysParam = await _sysParams.GetAsync();
+
+            ViewBag.Categories    = categories.Select(c => new SelectListItem(c.Name, c.Id.ToString()));
             ViewBag.IsStoreLocked = forcedStoreId.HasValue;
+            ViewBag.TaxRate       = sysParam.TaxRate;
 
             return new CreateSaleViewModel
             {

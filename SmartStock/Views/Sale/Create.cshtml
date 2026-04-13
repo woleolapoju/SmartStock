@@ -83,7 +83,7 @@
                 <span id="summarySubtotal">$0.00</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted">Tax (8%)</span>
+                <span class="text-muted">Tax (@ViewBag.TaxRate%)</span>
                 <span id="summaryTax">$0.00</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
@@ -105,7 +105,7 @@
         categories.Select(c => new { value = c.Value, text = c.Text })
     ));
     let itemIndex = 0;
-    const TAX_RATE = 0.08;
+    const TAX_RATE = @(ViewBag.TaxRate) / 100;
 
     function getStoreId() {
         return document.getElementById('storeSelect').value;

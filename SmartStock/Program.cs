@@ -49,6 +49,7 @@ builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ISaleService, SaleService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<ISystemParameterService, SystemParameterService>();
 
 // ── Logging ───────────────────────────────────────────────────────────────────
 builder.Logging.ClearProviders();

@@ -55,7 +55,7 @@
                     </tbody>
                     <tfoot>
                         <tr><td colspan="5" class="text-end text-muted">Subtotal</td><td class="text-end">$@Model.SubTotal.ToString("N2")</td></tr>
-                        <tr><td colspan="5" class="text-end text-muted">Tax (8%)</td><td class="text-end">$@Model.TaxAmount.ToString("N2")</td></tr>
+                        <tr><td colspan="5" class="text-end text-muted">Tax @(Model.SubTotal > 0 ? "(" + Math.Round(Model.TaxAmount / Model.SubTotal * 100, 2) + "%)" : "")</td><td class="text-end">$@Model.TaxAmount.ToString("N2")</td></tr>
                         @if (Model.Discount > 0)
                         {
                             <tr><td colspan="5" class="text-end text-muted">Discount</td><td class="text-end text-danger">-$@Model.Discount.ToString("N2")</td></tr>

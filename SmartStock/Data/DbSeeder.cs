@@ -23,6 +23,18 @@ namespace SmartStock.Data
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
 
+            // ── SystemParameter ───────────────────────────────────────────────────
+            if (!await db.SystemParameters.AnyAsync())
+            {
+                db.SystemParameters.Add(new SystemParameter
+                {
+                    OwnerName = "Exel Chemist",
+                    TaxRate = 8.0m,
+                    UpdatedAt = DateTime.UtcNow
+                });
+                await db.SaveChangesAsync();
+            }
+
             // ── Categories ────────────────────────────────────────────────────────
             if (!await db.Categories.AnyAsync())
             {

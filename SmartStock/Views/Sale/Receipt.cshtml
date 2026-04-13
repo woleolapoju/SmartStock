@@ -1,7 +1,9 @@
 @model SmartStock.Models.Sale
+@inject SmartStock.Interfaces.ISystemParameterService _receiptSysParams
 @{
     ViewData["Title"] = "Receipt - " + Model.ReferenceNumber;
     Layout = null;
+    var _receiptParam = await _receiptSysParams.GetAsync();
 }
 <!DOCTYPE html>
 <html>
@@ -19,7 +21,7 @@
     </style>
 </head>
 <body>
-    <div class="center bold" style="font-size:18px">SmartStock</div>
+    <div class="center bold" style="font-size:18px">@_receiptParam.OwnerName</div>
     <div class="center">@Model.Store?.Name</div>
     <div class="center" style="font-size:11px">@Model.SaleDate.ToString("MM/dd/yyyy HH:mm:ss")</div>
     <hr/>
@@ -37,7 +39,7 @@
     }
     <hr/>
     <div class="row"><span>Subtotal</span><span>$@Model.SubTotal.ToString("N2")</span></div>
-    <div class="row"><span>Tax (8%)</span><span>$@Model.TaxAmount.ToString("N2")</span></div>
+    <div class="row"><span>Tax @(Model.SubTotal > 0 ? "(" + Math.Round(Model.TaxAmount / Model.SubTotal * 100, 2) + "%)" : "")</span><span>$@Model.TaxAmount.ToString("N2")</span></div>
     @if (Model.Discount > 0)
     {
         <div class="row"><span>Discount</span><span>-$@Model.Discount.ToString("N2")</span></div>

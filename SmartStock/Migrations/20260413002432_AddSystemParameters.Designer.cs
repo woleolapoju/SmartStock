@@ -12,8 +12,8 @@ using SmartStock.Data;
 namespace SmartStock.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260404232420_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260413002432_AddSystemParameters")]
+    partial class AddSystemParameters
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -347,7 +347,6 @@ namespace SmartStock.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("SKU")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -361,7 +360,8 @@ namespace SmartStock.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("SKU")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SKU] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
@@ -541,6 +541,53 @@ namespace SmartStock.Migrations
                     b.ToTable("SaleItems");
                 });
 
+            modelBuilder.Entity("SmartStock.Models.StockAdjustmentLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AdjustedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AdjustedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityAfter")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityBefore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityChange")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdjustedByUserId");
+
+                    b.HasIndex("LocationType", "LocationId");
+
+                    b.HasIndex("ProductId", "AdjustedAt");
+
+                    b.ToTable("StockAdjustmentLogs");
+                });
+
             modelBuilder.Entity("SmartStock.Models.StockTransfer", b =>
                 {
                     b.Property<int>("Id")
@@ -661,6 +708,45 @@ namespace SmartStock.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stores");
+                });
+
+            modelBuilder.Entity("SmartStock.Models.SystemParameter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("OwnerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("TaxRate")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("SystemParameters");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            OwnerName = "SmartStock",
+                            TaxRate = 8.0m,
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("SmartStock.Models.Warehouse", b =>
@@ -856,6 +942,24 @@ namespace SmartStock.Migrations
                     b.Navigation("Sale");
                 });
 
+            modelBuilder.Entity("SmartStock.Models.StockAdjustmentLog", b =>
+                {
+                    b.HasOne("SmartStock.Models.ApplicationUser", "AdjustedBy")
+                        .WithMany()
+                        .HasForeignKey("AdjustedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SmartStock.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AdjustedBy");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("SmartStock.Models.StockTransfer", b =>
                 {
                     b.HasOne("SmartStock.Models.ApplicationUser", "ApprovedBy")
@@ -906,6 +1010,16 @@ namespace SmartStock.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("StockTransfer");
+                });
+
+            modelBuilder.Entity("SmartStock.Models.SystemParameter", b =>
+                {
+                    b.HasOne("SmartStock.Models.ApplicationUser", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("SmartStock.Models.Category", b =>

@@ -1,0 +1,77 @@
+@model SmartStock.ViewModels.SystemParameterViewModel
+@{
+    ViewData["Title"] = "System Parameters";
+}
+
+<div class="page-hero">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item active">System Parameters</li>
+        </ol>
+    </nav>
+    <h4 class="mb-0 fw-bold"><i class="bi bi-gear me-2"></i>System Parameters</h4>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card p-4">
+            <h6 class="fw-semibold mb-1">Configuration</h6>
+            <p class="text-muted small mb-4">Global settings that apply across the entire system.</p>
+
+            <form asp-action="Save" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                <!-- Owner Name -->
+                <div class="mb-4">
+                    <label asp-for="OwnerName" class="form-label fw-semibold"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                        <input asp-for="OwnerName" class="form-control" placeholder="e.g. Acme Corporation" />
+                    </div>
+                    <div class="form-text">Appears in the topbar as "Licensed to: …" and on printed receipts.</div>
+                    <span asp-validation-for="OwnerName" class="text-danger small"></span>
+                </div>
+
+                <!-- Tax Rate -->
+                <div class="mb-4">
+                    <label asp-for="TaxRate" class="form-label fw-semibold"></label>
+                    <div class="input-group" style="max-width:200px">
+                        <input asp-for="TaxRate" class="form-control" type="number" step="0.01" min="0" max="100" />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <div class="form-text">Applied to all sales transactions. Enter a value between 0 and 100.</div>
+                    <span asp-validation-for="TaxRate" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mt-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-floppy me-1"></i>Save Changes
+                    </button>
+                    @if (Model.LastUpdatedAt.HasValue)
+                    {
+                        <span class="text-muted small">
+                            Last saved @Model.LastUpdatedAt.Value.ToString("MM/dd/yyyy HH:mm")
+                            @(Model.LastUpdatedBy != null ? "by " + Model.LastUpdatedBy : "")
+                        </span>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card p-4 h-100" style="background:var(--bs-light,#f8f9fa)">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>About these settings</h6>
+            <ul class="list-unstyled text-muted small mb-0" style="line-height:2">
+                <li><i class="bi bi-check2 me-2 text-success"></i><strong>Owner Name</strong> — Shown in the system topbar and printed on sale receipts.</li>
+                <li><i class="bi bi-check2 me-2 text-success"></i><strong>Tax Rate</strong> — Automatically applied when processing new sales. Existing sales are not affected.</li>
+                <li><i class="bi bi-lock me-2 text-warning"></i>Only Admins can change these settings.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
