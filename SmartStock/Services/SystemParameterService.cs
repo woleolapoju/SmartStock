@@ -34,6 +34,8 @@ namespace SmartStock.Services
             {
                 existing.OwnerName = param.OwnerName;
                 existing.TaxRate = param.TaxRate;
+                existing.CurrencySymbol = param.CurrencySymbol;
+                existing.CurrencyCode = param.CurrencyCode;
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedByUserId = updatedByUserId;
             }

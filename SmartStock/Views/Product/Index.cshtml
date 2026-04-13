@@ -75,8 +75,8 @@
                     </td>
                     <td><code class="small">@p.SKU</code></td>
                     <td><span class="badge bg-light text-dark">@p.Category?.Name</span></td>
-                    <td>$@p.CostPrice.ToString("N2")</td>
-                    <td class="fw-medium">$@p.Price.ToString("N2")</td>
+                    <td>@ViewBag.CurrencySymbol@p.CostPrice.ToString("N2")</td>
+                    <td class="fw-medium">@ViewBag.CurrencySymbol@p.Price.ToString("N2")</td>
                     <td>
                         @if (p.IsActive)
                         { <span class="badge-received">Active</span> }

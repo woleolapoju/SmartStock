@@ -23,6 +23,8 @@ namespace SmartStock.Controllers
             {
                 OwnerName = param.OwnerName,
                 TaxRate = param.TaxRate,
+                CurrencySymbol = param.CurrencySymbol,
+                CurrencyCode = param.CurrencyCode,
                 LastUpdatedAt = param.UpdatedAt,
                 LastUpdatedBy = param.UpdatedBy?.FullName ?? param.UpdatedBy?.Email
             };
@@ -39,7 +41,9 @@ namespace SmartStock.Controllers
             await _service.SaveAsync(new SystemParameter
             {
                 OwnerName = model.OwnerName,
-                TaxRate = model.TaxRate
+                TaxRate = model.TaxRate,
+                CurrencySymbol = model.CurrencySymbol,
+                CurrencyCode = model.CurrencyCode
             }, userId);
 
             TempData["Success"] = "System parameters saved successfully.";

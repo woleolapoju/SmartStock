@@ -83,7 +83,7 @@
                     <td>@s.Store?.Name</td>
                     <td class="text-muted small">@(s.Cashier?.FullName ?? s.Cashier?.Email ?? "—")</td>
                     <td class="text-muted">@s.Items.Count</td>
-                    <td class="fw-bold">$@s.TotalAmount.ToString("N2")</td>
+                    <td class="fw-bold">@ViewBag.CurrencySymbol@s.TotalAmount.ToString("N2")</td>
                     <td><span class="badge-@s.Status.ToString().ToLower()">@s.Status</span></td>
                     <td class="text-muted small">@s.SaleDate.ToString("MM/dd/yyyy HH:mm")</td>
                     <td>

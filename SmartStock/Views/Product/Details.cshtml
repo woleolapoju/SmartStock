@@ -48,11 +48,11 @@
                 </div>
                 <div class="col-6">
                     <div class="text-muted small">Cost Price</div>
-                    <div class="fs-5">$@Model.CostPrice.ToString("N2")</div>
+                    <div class="fs-5">@ViewBag.CurrencySymbol@Model.CostPrice.ToString("N2")</div>
                 </div>
                 <div class="col-6">
                     <div class="text-muted small">Selling Price</div>
-                    <div class="fs-5 fw-bold text-primary">$@Model.Price.ToString("N2")</div>
+                    <div class="fs-5 fw-bold text-primary">@ViewBag.CurrencySymbol@Model.Price.ToString("N2")</div>
                 </div>
                 <div class="col-12">
                     <div class="text-muted small">Description</div>

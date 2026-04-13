@@ -47,22 +47,22 @@
                             <td class="fw-medium">@item.Product?.Name</td>
                             <td><code class="small">@item.Product?.SKU</code></td>
                             <td>@item.Quantity</td>
-                            <td>$@item.UnitPrice.ToString("N2")</td>
+                            <td>@ViewBag.CurrencySymbol@item.UnitPrice.ToString("N2")</td>
                             <td class="text-muted">@(item.Discount > 0 ? "-$"+item.Discount.ToString("N2") : "—")</td>
-                            <td class="text-end fw-bold">$@item.LineTotal.ToString("N2")</td>
+                            <td class="text-end fw-bold">@ViewBag.CurrencySymbol@item.LineTotal.ToString("N2")</td>
                         </tr>
                     }
                     </tbody>
                     <tfoot>
-                        <tr><td colspan="5" class="text-end text-muted">Subtotal</td><td class="text-end">$@Model.SubTotal.ToString("N2")</td></tr>
-                        <tr><td colspan="5" class="text-end text-muted">Tax @(Model.SubTotal > 0 ? "(" + Math.Round(Model.TaxAmount / Model.SubTotal * 100, 2) + "%)" : "")</td><td class="text-end">$@Model.TaxAmount.ToString("N2")</td></tr>
+                        <tr><td colspan="5" class="text-end text-muted">Subtotal</td><td class="text-end">@ViewBag.CurrencySymbol@Model.SubTotal.ToString("N2")</td></tr>
+                        <tr><td colspan="5" class="text-end text-muted">Tax @(Model.SubTotal > 0 ? "(" + Math.Round(Model.TaxAmount / Model.SubTotal * 100, 2) + "%)" : "")</td><td class="text-end">@ViewBag.CurrencySymbol@Model.TaxAmount.ToString("N2")</td></tr>
                         @if (Model.Discount > 0)
                         {
-                            <tr><td colspan="5" class="text-end text-muted">Discount</td><td class="text-end text-danger">-$@Model.Discount.ToString("N2")</td></tr>
+                            <tr><td colspan="5" class="text-end text-muted">Discount</td><td class="text-end text-danger">-@ViewBag.CurrencySymbol@Model.Discount.ToString("N2")</td></tr>
                         }
                         <tr class="fw-bold fs-6">
                             <td colspan="5" class="text-end">Total</td>
-                            <td class="text-end text-primary">$@Model.TotalAmount.ToString("N2")</td>
+                            <td class="text-end text-primary">@ViewBag.CurrencySymbol@Model.TotalAmount.ToString("N2")</td>
                         </tr>
                     </tfoot>
                 </table>

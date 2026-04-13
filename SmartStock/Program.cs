@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmartStock.Data;
+using SmartStock.Filters;
 using SmartStock.Interfaces;
 using SmartStock.Models;
 using SmartStock.Services;
@@ -38,7 +39,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // ── MVC ───────────────────────────────────────────────────────────────────────
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<SystemParameterFilter>();
+});
 builder.Services.AddRazorPages();
 
 // ── Application Services ──────────────────────────────────────────────────────

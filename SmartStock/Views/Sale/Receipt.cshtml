@@ -33,19 +33,19 @@
             <span>@item.Product?.Name</span>
         </div>
         <div class="row">
-            <span>  @item.Quantity x $@item.UnitPrice.ToString("N2")</span>
-            <span>$@item.LineTotal.ToString("N2")</span>
+            <span>  @item.Quantity x @_receiptParam.CurrencySymbol@item.UnitPrice.ToString("N2")</span>
+            <span>@_receiptParam.CurrencySymbol@item.LineTotal.ToString("N2")</span>
         </div>
     }
     <hr/>
-    <div class="row"><span>Subtotal</span><span>$@Model.SubTotal.ToString("N2")</span></div>
-    <div class="row"><span>Tax @(Model.SubTotal > 0 ? "(" + Math.Round(Model.TaxAmount / Model.SubTotal * 100, 2) + "%)" : "")</span><span>$@Model.TaxAmount.ToString("N2")</span></div>
+    <div class="row"><span>Subtotal</span><span>@_receiptParam.CurrencySymbol@Model.SubTotal.ToString("N2")</span></div>
+    <div class="row"><span>Tax @(Model.SubTotal > 0 ? "(" + Math.Round(Model.TaxAmount / Model.SubTotal * 100, 2) + "%)" : "")</span><span>@_receiptParam.CurrencySymbol@Model.TaxAmount.ToString("N2")</span></div>
     @if (Model.Discount > 0)
     {
-        <div class="row"><span>Discount</span><span>-$@Model.Discount.ToString("N2")</span></div>
+        <div class="row"><span>Discount</span><span>-@_receiptParam.CurrencySymbol@Model.Discount.ToString("N2")</span></div>
     }
     <hr/>
-    <div class="row total-row"><span>TOTAL</span><span>$@Model.TotalAmount.ToString("N2")</span></div>
+    <div class="row total-row"><span>TOTAL</span><span>@_receiptParam.CurrencySymbol@Model.TotalAmount.ToString("N2")</span></div>
     <hr/>
     <div class="center" style="font-size:11px">Thank you for your purchase!</div>
     <br/>

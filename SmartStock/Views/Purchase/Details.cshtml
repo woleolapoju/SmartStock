@@ -50,15 +50,15 @@
                             <td class="fw-medium">@item.Product?.Name</td>
                             <td><code class="small">@item.Product?.SKU</code></td>
                             <td>@item.Quantity</td>
-                            <td>$@item.UnitCost.ToString("N2")</td>
-                            <td class="text-end fw-bold">$@item.LineTotal.ToString("N2")</td>
+                            <td>@ViewBag.CurrencySymbol@item.UnitCost.ToString("N2")</td>
+                            <td class="text-end fw-bold">@ViewBag.CurrencySymbol@item.LineTotal.ToString("N2")</td>
                         </tr>
                     }
                     </tbody>
                     <tfoot>
                         <tr class="fw-bold fs-6">
                             <td colspan="4" class="text-end">Total</td>
-                            <td class="text-end text-primary">$@Model.TotalAmount.ToString("N2")</td>
+                            <td class="text-end text-primary">@ViewBag.CurrencySymbol@Model.TotalAmount.ToString("N2")</td>
                         </tr>
                     </tfoot>
                 </table>

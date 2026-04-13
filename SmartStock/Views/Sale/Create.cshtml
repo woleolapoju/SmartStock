@@ -43,9 +43,9 @@
                         <span asp-validation-for="StoreId" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
-                        <label asp-for="Discount" class="form-label fw-semibold">Order Discount ($)</label>
+                        <label asp-for="Discount" class="form-label fw-semibold">Order Discount (@ViewBag.CurrencySymbol)</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">@ViewBag.CurrencySymbol</span>
                             <input asp-for="Discount" class="form-control no-select2" type="number" step="0.01" min="0" id="orderDiscount" value="0" />
                         </div>
                     </div>
@@ -80,20 +80,20 @@
             <h6 class="fw-semibold mb-3">Order Summary</h6>
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">Subtotal</span>
-                <span id="summarySubtotal">$0.00</span>
+                <span id="summarySubtotal">@ViewBag.CurrencySymbol@("0.00")</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">Tax (@ViewBag.TaxRate%)</span>
-                <span id="summaryTax">$0.00</span>
+                <span id="summaryTax">@ViewBag.CurrencySymbol@("0.00")</span>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">Discount</span>
-                <span id="summaryDiscount" class="text-danger">-$0.00</span>
+                <span id="summaryDiscount" class="text-danger">-@ViewBag.CurrencySymbol@("0.00")</span>
             </div>
             <hr/>
             <div class="d-flex justify-content-between fw-bold fs-5">
                 <span>Total</span>
-                <span id="summaryTotal" class="text-primary">$0.00</span>
+                <span id="summaryTotal" class="text-primary">@ViewBag.CurrencySymbol@("0.00")</span>
             </div>
         </div>
     </div>
@@ -106,6 +106,7 @@
     ));
     let itemIndex = 0;
     const TAX_RATE = @(ViewBag.TaxRate) / 100;
+    const CURRENCY = @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string)(ViewBag.CurrencySymbol ?? "$")));
 
     function getStoreId() {
         return document.getElementById('storeSelect').value;
@@ -145,7 +146,7 @@
                 <input type="number" name="Items[${idx}].Quantity" class="form-control qty-input" min="1" value="1" required oninput="recalculate()" />
             </div>
             <div class="col-md-2">
-                <label class="form-label small fw-semibold">Unit Price ($)</label>
+                <label class="form-label small fw-semibold">Unit Price (${CURRENCY})</label>
                 <input type="number" name="Items[${idx}].UnitPrice" class="form-control price-input no-select2" step="0.01" min="0" required oninput="recalculate()" />
             </div>
             <div class="col-md-1">
@@ -212,10 +213,10 @@
         const discount = parseFloat(document.getElementById('orderDiscount').value || 0);
         const tax = subtotal * TAX_RATE;
         const total = subtotal + tax - discount;
-        document.getElementById('summarySubtotal').textContent = '$' + subtotal.toFixed(2);
-        document.getElementById('summaryTax').textContent = '$' + tax.toFixed(2);
-        document.getElementById('summaryDiscount').textContent = '-$' + discount.toFixed(2);
-        document.getElementById('summaryTotal').textContent = '$' + total.toFixed(2);
+        document.getElementById('summarySubtotal').textContent = CURRENCY + subtotal.toFixed(2);
+        document.getElementById('summaryTax').textContent = CURRENCY + tax.toFixed(2);
+        document.getElementById('summaryDiscount').textContent = '-' + CURRENCY + discount.toFixed(2);
+        document.getElementById('summaryTotal').textContent = CURRENCY + total.toFixed(2);
     }
 
     document.getElementById('addItemBtn').addEventListener('click', addItem);

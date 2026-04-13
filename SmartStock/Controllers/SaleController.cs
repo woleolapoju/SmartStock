@@ -156,7 +156,8 @@ namespace SmartStock.Controllers
                 : await _db.Stores.Where(s => s.IsActive).ToListAsync();
 
             var categories = await _db.Categories
-                .Where(c => c.IsActive && c.Products.Any(p => p.IsActive))
+                .Where(c => c.IsActive && c.Products.Any(p => p.IsActive &&
+                    p.Inventories.Any(i => i.LocationType == Models.LocationType.Store && i.Quantity > 1)))
                 .OrderBy(c => c.Name).ToListAsync();
 
             var sysParam = await _sysParams.GetAsync();

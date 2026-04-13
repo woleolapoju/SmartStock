@@ -24,6 +24,7 @@ namespace SmartStock.Services
             var query = _db.Sales
                 .Include(s => s.Store)
                 .Include(s => s.Cashier)
+                .Include(s => s.Items)
                 .AsQueryable();
 
             if (storeId.HasValue) query = query.Where(s => s.StoreId == storeId.Value);

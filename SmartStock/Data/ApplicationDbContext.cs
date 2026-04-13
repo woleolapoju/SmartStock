@@ -201,6 +201,8 @@ namespace SmartStock.Data
                     Id = 1,
                     OwnerName = "SmartStock",
                     TaxRate = 8.0m,
+                    CurrencySymbol = "$",
+                    CurrencyCode = "USD",
                     UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 });
             });

@@ -14,6 +14,16 @@ namespace SmartStock.ViewModels
         [Display(Name = "Tax Rate (%)")]
         public decimal TaxRate { get; set; }
 
+        [Required(ErrorMessage = "Currency symbol is required.")]
+        [MaxLength(5)]
+        [Display(Name = "Currency Symbol")]
+        public string CurrencySymbol { get; set; } = "$";
+
+        [Required(ErrorMessage = "Currency code is required.")]
+        [MaxLength(10)]
+        [Display(Name = "Currency Code")]
+        public string CurrencyCode { get; set; } = "USD";
+
         public DateTime? LastUpdatedAt { get; set; }
         public string? LastUpdatedBy { get; set; }
     }

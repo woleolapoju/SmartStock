@@ -94,7 +94,7 @@
                 <div class="kpi-icon" style="background:#fdf4ff"><i class="bi bi-cash-stack" style="color:#a855f7"></i></div>
                 <div>
                     <div class="text-muted small">Today's Sales</div>
-                    <div class="fs-4 fw-bold">$@Model.TodaySalesAmount.ToString("N2")</div>
+                    <div class="fs-4 fw-bold">@ViewBag.CurrencySymbol@Model.TodaySalesAmount.ToString("N2")</div>
                 </div>
             </div>
         </div>
@@ -184,7 +184,7 @@
                             <tr>
                                 <td><a asp-controller="Sale" asp-action="Details" asp-route-id="@sale.Id" class="text-decoration-none fw-medium">@sale.ReferenceNumber</a></td>
                                 <td class="text-muted small">@sale.Store?.Name</td>
-                                <td class="fw-medium">$@sale.TotalAmount.ToString("N2")</td>
+                                <td class="fw-medium">@ViewBag.CurrencySymbol@sale.TotalAmount.ToString("N2")</td>
                                 <td class="text-muted small">@sale.SaleDate.ToString("MM/dd HH:mm")</td>
                             </tr>
                         }

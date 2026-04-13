@@ -13,6 +13,12 @@ namespace SmartStock.Models
         [Range(0, 100)]
         public decimal TaxRate { get; set; } = 8.0m;
 
+        [Required, MaxLength(5)]
+        public string CurrencySymbol { get; set; } = "$";
+
+        [Required, MaxLength(10)]
+        public string CurrencyCode { get; set; } = "USD";
+
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public string? UpdatedByUserId { get; set; }

@@ -30,6 +30,8 @@ namespace SmartStock.Data
                 {
                     OwnerName = "Exel Chemist",
                     TaxRate = 8.0m,
+                    CurrencySymbol = "£",
+                    CurrencyCode = "GBP",
                     UpdatedAt = DateTime.UtcNow
                 });
                 await db.SaveChangesAsync();

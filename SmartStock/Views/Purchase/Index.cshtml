@@ -29,7 +29,7 @@
                     <td class="fw-medium">@p.ReferenceNumber</td>
                     <td>@p.Warehouse?.Name</td>
                     <td class="text-muted">@(p.SupplierName ?? "—")</td>
-                    <td class="fw-bold">$@p.TotalAmount.ToString("N2")</td>
+                    <td class="fw-bold">@ViewBag.CurrencySymbol@p.TotalAmount.ToString("N2")</td>
                     <td><span class="badge-@p.Status.ToString().ToLower()">@p.Status</span></td>
                     <td class="text-muted small">@p.PurchaseDate.ToString("MM/dd/yyyy")</td>
                     <td>
