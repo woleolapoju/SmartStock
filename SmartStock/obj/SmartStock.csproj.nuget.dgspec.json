@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj": {}
+    "C:\\Applications\\SmartStock\\smartstock\\SmartStock.csproj": {}
   },
   "projects": {
-    "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj": {
+    "C:\\Applications\\SmartStock\\smartstock\\SmartStock.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
+        "projectUniqueName": "C:\\Applications\\SmartStock\\smartstock\\SmartStock.csproj",
         "projectName": "SmartStock",
-        "projectPath": "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
+        "projectPath": "C:\\Applications\\SmartStock\\smartstock\\SmartStock.csproj",
         "packagesPath": "C:\\Users\\ufy\\.nuget\\packages\\",
-        "outputPath": "C:\\Applications\\SmartStock\\SmartStock\\obj\\",
+        "outputPath": "C:\\Applications\\SmartStock\\smartstock\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
