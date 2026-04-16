@@ -17,15 +17,31 @@
             --sidebar-hover: #2d3447;
             --accent: #4f7cff;
         }
+
+        /* ── Base ─────────────────────────────────────────────────────────────── */
         body { background: #f0f2f5; }
+
+        /* ── Sidebar ──────────────────────────────────────────────────────────── */
         #sidebar {
-            width: var(--sidebar-width); min-height: 100vh;
-            background: var(--sidebar-bg); position: fixed;
-            top: 0; left: 0; transition: width 0.2s; z-index: 1000; overflow-x: hidden;
+            width: var(--sidebar-width);
+            min-height: 100vh;
+            background: var(--sidebar-bg);
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 1050;
+            overflow-x: hidden;
+            overflow-y: auto;
+            transition: transform .28s cubic-bezier(.4,0,.2,1);
         }
         #sidebar .brand {
             padding: 1.25rem 1rem; color: #fff; font-weight: 700; font-size: 1.1rem;
             border-bottom: 1px solid rgba(255,255,255,.08);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        #sidebar .brand-close {
+            display: none;
+            background: none; border: none; color: rgba(255,255,255,.5);
+            font-size: 1.2rem; cursor: pointer; padding: 0 .25rem; line-height: 1;
         }
         #sidebar .nav-link {
             color: rgba(255,255,255,.7); padding: .6rem 1.25rem; border-radius: 6px;
@@ -37,12 +53,34 @@
             font-size: .7rem; text-transform: uppercase; letter-spacing: .1em;
             color: rgba(255,255,255,.35); padding: .75rem 1.25rem .25rem;
         }
+
+        /* ── Sidebar overlay (mobile) ─────────────────────────────────────────── */
+        #sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 1040;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        #sidebar-overlay.show { display: block; }
+
+        /* ── Main content ─────────────────────────────────────────────────────── */
         #main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
+
+        /* ── Topbar ───────────────────────────────────────────────────────────── */
         .topbar {
             background: linear-gradient(135deg, #ffffff 0%, #f5f7ff 100%);
             border-bottom: 1px solid #e5e7eb;
             padding: .7rem 1.5rem;
             box-shadow: 0 2px 8px rgba(79,124,255,.06);
+            position: sticky; top: 0; z-index: 900;
+        }
+        .topbar-hamburger {
+            display: none;
+            background: none; border: none;
+            font-size: 1.4rem; color: #374151;
+            padding: 0 .4rem; cursor: pointer; line-height: 1;
         }
         .topbar-chip {
             display: inline-flex; align-items: center; gap: .4rem;
@@ -60,6 +98,8 @@
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
+
+        /* ── KPI / Cards / Table ─────────────────────────────────────────────── */
         .kpi-card { border: none; border-radius: 12px; }
         .kpi-icon { width: 48px; height: 48px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-size: 1.4rem; }
         .badge-pending { background:#fef3c7;color:#92400e;padding:.35em .65em;border-radius:6px;font-size:.78em; }
@@ -73,17 +113,114 @@
         .table th { font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600; }
         .page-hero { background:#fff;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.05); }
         .card { border:none; box-shadow:0 1px 3px rgba(0,0,0,.06); border-radius:12px; }
-        @@media (max-width: 768px) { #sidebar { width: 0; } #main-content { margin-left: 0; } }
+
+        /* ── Splash screen ────────────────────────────────────────────────────── */
+        #splash {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #0f1623 0%, #1a1f2e 40%, #0d1b3e 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 0;
+            cursor: pointer;
+            transition: opacity .6s ease, visibility .6s ease;
+        }
+        #splash.hiding { opacity: 0; visibility: hidden; }
+        #splash-logo {
+            width: 90px; height: 90px; border-radius: 24px;
+            background: linear-gradient(135deg, #4f7cff 0%, #7b5ea7 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.8rem; color: #fff;
+            box-shadow: 0 0 0 0 rgba(79,124,255,.5);
+            animation: splashPulse 2s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+        @@keyframes splashPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(79,124,255,.4); }
+            50%      { box-shadow: 0 0 0 18px rgba(79,124,255,0); }
+        }
+        #splash h1 {
+            color: #fff; font-size: 2.4rem; font-weight: 800;
+            letter-spacing: -.02em; margin-bottom: .4rem;
+        }
+        #splash h1 span { color: #4f7cff; }
+        #splash p {
+            color: rgba(255,255,255,.5); font-size: 1rem; margin-bottom: 2.5rem;
+        }
+        #splash-owner {
+            color: rgba(255,255,255,.75); font-size: .95rem; margin-bottom: 2.5rem;
+            letter-spacing: .02em;
+        }
+        #splash-progress-wrap {
+            width: 220px; height: 4px;
+            background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden;
+            margin-bottom: 1.2rem;
+        }
+        #splash-progress {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #4f7cff, #7b5ea7);
+            border-radius: 2px;
+            transition: width linear;
+        }
+        #splash-hint {
+            color: rgba(255,255,255,.3); font-size: .78rem; letter-spacing: .04em;
+        }
+        #splash-dots {
+            display: flex; gap: .5rem; margin-top: .5rem;
+        }
+        #splash-dots span {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: rgba(255,255,255,.2);
+            animation: dotBounce 1.4s ease-in-out infinite;
+        }
+        #splash-dots span:nth-child(2) { animation-delay: .2s; }
+        #splash-dots span:nth-child(3) { animation-delay: .4s; }
+        @@keyframes dotBounce {
+            0%,80%,100% { transform: scale(1); background: rgba(255,255,255,.2); }
+            40%          { transform: scale(1.5); background: #4f7cff; }
+        }
+
+        /* ── Mobile breakpoint ────────────────────────────────────────────────── */
+        @@media (max-width: 768px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.open { transform: translateX(0); }
+            #sidebar .brand-close { display: block; }
+            #main-content { margin-left: 0; }
+            .topbar-hamburger { display: block; }
+            .topbar { padding: .6rem 1rem; }
+            .topbar-chip.hide-xs { display: none; }
+            .topbar-sep.hide-xs { display: none; }
+            .p-4 { padding: 1rem !important; }
+        }
     </style>
     @await RenderSectionAsync("Head", required: false)
 </head>
 <body>
 
+<!-- ── Splash Screen ──────────────────────────────────────────────────────── -->
 @if (User.Identity?.IsAuthenticated == true)
 {
+<div id="splash" onclick="dismissSplash()">
+    <div id="splash-logo"><i class="bi bi-boxes"></i></div>
+    <h1>Smart<span>Stock</span></h1>
+    <p>Inventory Management System</p>
+    <div id="splash-owner"><i class="bi bi-shield-check me-2" style="color:#4f7cff"></i>@_sysParam.OwnerName</div>
+    <div id="splash-progress-wrap"><div id="splash-progress"></div></div>
+    <div id="splash-hint">Click anywhere or press any key to continue</div>
+    <div id="splash-dots"><span></span><span></span><span></span></div>
+</div>
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
     <nav id="sidebar">
         <div class="brand">
-            <i class="bi bi-boxes me-2" style="color:var(--accent)"></i>SmartStock
+            <span><i class="bi bi-boxes me-2" style="color:var(--accent)"></i>SmartStock</span>
+            <button class="brand-close" onclick="closeSidebar()" aria-label="Close menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
         <div class="pt-2 pb-3">
             <div class="nav-section">Main</div>
@@ -154,18 +291,21 @@
     </nav>
 
     <div id="main-content">
-        <div class="topbar d-flex justify-content-between align-items-center gap-3">
-            <!-- Left: date + licensed-to chips -->
+        <div class="topbar d-flex justify-content-between align-items-center gap-2">
+            <!-- Left: hamburger (mobile) + date + licensed-to chips -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <span class="topbar-chip">
+                <button class="topbar-hamburger" onclick="openSidebar()" aria-label="Open menu">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="topbar-chip hide-xs">
                     <i class="bi bi-calendar3 text-primary"></i>
                     @DateTime.Now.ToString("ddd, MMM dd yyyy")
                 </span>
-                <div class="topbar-sep"></div>
+                <div class="topbar-sep hide-xs"></div>
                 <span class="topbar-chip">
                     <i class="bi bi-shield-check text-success"></i>
-                    <span class="text-muted" style="font-weight:400">Licensed to</span>
-                    <span><h4 style="color:blue;font-weight:500px">@_sysParam.OwnerName</h4></span>
+                    <span class="text-muted d-none d-sm-inline" style="font-weight:400">Licensed to</span>
+                    <span class="fw-semibold" style="color:#1a1f2e">@_sysParam.OwnerName</span>
                 </span>
             </div>
 
@@ -231,8 +371,7 @@ else
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    // Initialise Select2 on all selects that are not inside a JS-generated template
-    // and not the no-select2 exclusion class
+    // ── Select2 ────────────────────────────────────────────────────────────────
     $(document).ready(function () {
         $('select:not(.no-select2):not([data-skip-select2])').select2({
             theme: 'bootstrap-5',
@@ -241,6 +380,54 @@ else
             allowClear: true
         });
     });
+
+    // ── Sidebar toggle (mobile) ─────────────────────────────────────────────
+    function openSidebar() {
+        document.getElementById('sidebar').classList.add('open');
+        document.getElementById('sidebar-overlay').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-overlay').classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    // Auto-close sidebar when a nav link is tapped on mobile
+    document.querySelectorAll('#sidebar .nav-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+
+    // ── Splash screen ───────────────────────────────────────────────────────
+    (function() {
+        var splash = document.getElementById('splash');
+        if (!splash) return;
+
+        var DURATION = 5000; // 5 seconds
+        var progress = document.getElementById('splash-progress');
+        var dismissed = false;
+
+        function dismissSplash() {
+            if (dismissed) return;
+            dismissed = true;
+            splash.classList.add('hiding');
+            setTimeout(function() { splash.style.display = 'none'; }, 650);
+        }
+        window.dismissSplash = dismissSplash;
+
+        // Animate progress bar
+        progress.style.transition = 'width ' + DURATION + 'ms linear';
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() { progress.style.width = '100%'; });
+        });
+
+        // Auto-dismiss after DURATION
+        setTimeout(dismissSplash, DURATION);
+
+        // Dismiss on any key press
+        document.addEventListener('keydown', dismissSplash, { once: true });
+    })();
 </script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

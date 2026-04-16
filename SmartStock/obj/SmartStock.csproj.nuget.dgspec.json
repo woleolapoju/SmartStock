@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj": {}
+    "c:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj": {}
   },
   "projects": {
-    "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj": {
+    "c:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
+        "projectUniqueName": "c:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
         "projectName": "SmartStock",
-        "projectPath": "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
+        "projectPath": "c:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
         "packagesPath": "C:\\Users\\ufy\\.nuget\\packages\\",
-        "outputPath": "C:\\Applications\\SmartStock\\SmartStock\\obj\\",
+        "outputPath": "c:\\Applications\\SmartStock\\SmartStock\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -99,7 +99,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.AspNetCore": "(,10.0.32767]",
             "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",
