@@ -317,3 +317,4 @@ C:\Applications\SmartStock\SmartStock\obj\Debug\net10.0\compressed\v0zgfp0y55-{0
 C:\Applications\SmartStock\SmartStock\obj\Debug\net10.0\SmartStock.sourcelink.json
 C:\Applications\SmartStock\SmartStock\obj\Debug\net10.0\SmartStock.Properties.Resources.resources
 C:\Applications\SmartStock\SmartStock\obj\Debug\net10.0\SmartStock.csproj.GenerateResource.cache
+C:\Applications\SmartStock\SmartStock\bin\Debug\net10.0\dotnet-tools.json

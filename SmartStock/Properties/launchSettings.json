@@ -23,8 +23,7 @@
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "ancmHostingModel": "OutOfProcess"
+      }
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
