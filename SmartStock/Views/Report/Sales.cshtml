@@ -3,12 +3,32 @@
     ViewData["Title"] = "Sales Report";
 }
 
-<div class="page-hero">
-    <h4 class="mb-0 fw-bold"><i class="bi bi-bar-chart-line me-2"></i>Sales Report</h4>
+@section Head {
+<style>
+    @@media print {
+        #sidebar, #sidebar-overlay, .topbar, .no-print { display: none !important; }
+        #main-content { margin-left: 0 !important; }
+        .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
+        .page-hero { box-shadow: none !important; }
+        a.btn { display: none !important; }
+    }
+</style>
+}
+
+<div class="page-hero d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-bar-chart-line me-2"></i>Sales Report</h4>
+        <p class="text-muted mb-0 small">@ViewBag.From &ndash; @ViewBag.To &nbsp;&bull;&nbsp; @Model.Count() transaction(s)</p>
+    </div>
+    <div class="d-flex gap-2 no-print">
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-printer me-1"></i>Print
+        </button>
+    </div>
 </div>
 
 <!-- Filters -->
-<div class="card mb-3 p-3">
+<div class="card mb-3 p-3 no-print">
     <form method="get" class="row g-2 align-items-end">
         <div class="col-md-3">
             <label class="form-label small fw-semibold">Store</label>
@@ -40,6 +60,7 @@
         </div>
     </form>
 </div>
+
 
 <!-- Summary -->
 <div class="row g-3 mb-4">
@@ -101,7 +122,8 @@
     </div>
 </div>
 
-<div class="mt-3 d-flex gap-2">
+<div class="mt-3 d-flex gap-2 no-print">
     <a asp-controller="Report" asp-action="Inventory" class="btn btn-outline-secondary">Inventory Report</a>
     <a asp-controller="Report" asp-action="Transfers" class="btn btn-outline-secondary">Transfers Report</a>
+    <a asp-controller="Report" asp-action="Purchases" class="btn btn-outline-secondary">Purchases Report</a>
 </div>

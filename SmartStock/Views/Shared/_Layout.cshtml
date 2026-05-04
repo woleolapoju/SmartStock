@@ -279,6 +279,14 @@
                asp-controller="Report" asp-action="Sales">
                 <i class="bi bi-bar-chart-line"></i> Sales Report
             </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Purchases" ? "active" : "")"
+               asp-controller="Report" asp-action="Purchases">
+                <i class="bi bi-truck"></i> Purchases Report
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Transfers" ? "active" : "")"
+               asp-controller="Report" asp-action="Transfers">
+                <i class="bi bi-arrow-left-right"></i> Transfers Report
+            </a>
             <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Inventory" ? "active" : "")"
                asp-controller="Report" asp-action="Inventory">
                 <i class="bi bi-clipboard-data"></i> Inventory Report

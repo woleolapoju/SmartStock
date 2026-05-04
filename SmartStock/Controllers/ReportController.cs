@@ -85,7 +85,7 @@ namespace SmartStock.Controllers
         }
 
         // GET: Report/Transfers
-        public async Task<IActionResult> Transfers(DateTime? from, DateTime? to, TransferStatus? status)
+        public async Task<IActionResult> Transfers(DateTime? from, DateTime? to, TransferStatus? status, int? warehouseId, int? storeId)
         {
             from ??= DateTime.UtcNow.AddDays(-30);
             to ??= DateTime.UtcNow;
@@ -93,21 +93,67 @@ namespace SmartStock.Controllers
             var query = _db.StockTransfers
                 .Include(t => t.Warehouse)
                 .Include(t => t.Store)
-                .Include(t => t.Items)
+                .Include(t => t.Items).ThenInclude(i => i.Product)
                 .Where(t => t.CreatedAt >= from && t.CreatedAt <= to.Value.AddDays(1))
                 .AsQueryable();
 
             if (status.HasValue) query = query.Where(t => t.Status == status.Value);
+            if (warehouseId.HasValue) query = query.Where(t => t.WarehouseId == warehouseId.Value);
+            if (storeId.HasValue) query = query.Where(t => t.StoreId == storeId.Value);
 
             var transfers = await query.OrderByDescending(t => t.CreatedAt).ToListAsync();
+            var warehouses = await _db.Warehouses.Where(w => w.IsActive).OrderBy(w => w.Name).ToListAsync();
+            var stores = await _db.Stores.Where(s => s.IsActive).OrderBy(s => s.Name).ToListAsync();
 
             ViewBag.From = from.Value.ToString("yyyy-MM-dd");
             ViewBag.To = to.Value.ToString("yyyy-MM-dd");
             ViewBag.Status = status;
+            ViewBag.SelectedWarehouseId = warehouseId;
+            ViewBag.SelectedStoreId = storeId;
             ViewBag.StatusOptions = Enum.GetValues<TransferStatus>()
                 .Select(s => new SelectListItem(s.ToString(), ((int)s).ToString()));
+            ViewBag.Warehouses = warehouses.Select(w => new SelectListItem(w.Name, w.Id.ToString()));
+            ViewBag.Stores = stores.Select(s => new SelectListItem(s.Name, s.Id.ToString()));
+            ViewBag.TotalTransfers = transfers.Count;
+            ViewBag.ReceivedTransfers = transfers.Count(t => t.Status == TransferStatus.Received);
+            ViewBag.InTransit = transfers.Count(t => t.Status == TransferStatus.Dispatched);
+            ViewBag.PendingTransfers = transfers.Count(t => t.Status == TransferStatus.Pending || t.Status == TransferStatus.Approved);
 
             return View(transfers);
+        }
+
+        // GET: Report/Purchases
+        public async Task<IActionResult> Purchases(int? warehouseId, DateTime? from, DateTime? to, PurchaseStatus? status)
+        {
+            from ??= DateTime.UtcNow.AddDays(-30);
+            to ??= DateTime.UtcNow;
+
+            var query = _db.Purchases
+                .Include(p => p.Warehouse)
+                .Include(p => p.CreatedBy)
+                .Include(p => p.Items).ThenInclude(i => i.Product)
+                .Where(p => p.PurchaseDate >= from && p.PurchaseDate <= to.Value.AddDays(1))
+                .AsQueryable();
+
+            if (warehouseId.HasValue) query = query.Where(p => p.WarehouseId == warehouseId.Value);
+            if (status.HasValue) query = query.Where(p => p.Status == status.Value);
+
+            var purchases = await query.OrderByDescending(p => p.PurchaseDate).ToListAsync();
+            var warehouses = await _db.Warehouses.Where(w => w.IsActive).OrderBy(w => w.Name).ToListAsync();
+
+            ViewBag.From = from.Value.ToString("yyyy-MM-dd");
+            ViewBag.To = to.Value.ToString("yyyy-MM-dd");
+            ViewBag.SelectedWarehouseId = warehouseId;
+            ViewBag.Status = status;
+            ViewBag.Warehouses = warehouses.Select(w => new SelectListItem(w.Name, w.Id.ToString()));
+            ViewBag.StatusOptions = Enum.GetValues<PurchaseStatus>()
+                .Select(s => new SelectListItem(s.ToString(), ((int)s).ToString()));
+            ViewBag.TotalOrders = purchases.Count;
+            ViewBag.TotalAmount = purchases.Sum(p => p.TotalAmount);
+            ViewBag.ReceivedOrders = purchases.Count(p => p.Status == PurchaseStatus.Received);
+            ViewBag.PendingOrders = purchases.Count(p => p.Status == PurchaseStatus.Pending || p.Status == PurchaseStatus.Ordered);
+
+            return View(purchases);
         }
 
         // GET: Report/AdjustmentLog

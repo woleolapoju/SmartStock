@@ -1,0 +1,155 @@
+@model IEnumerable<SmartStock.Models.Purchase>
+@using SmartStock.Models
+@{
+    ViewData["Title"] = "Purchases Report";
+}
+
+@section Head {
+<style>
+    @@media print {
+        #sidebar, #sidebar-overlay, .topbar, .no-print { display: none !important; }
+        #main-content { margin-left: 0 !important; }
+        .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
+        .page-hero { box-shadow: none !important; }
+        a.btn { display: none !important; }
+    }
+</style>
+}
+
+<div class="page-hero d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0 fw-bold"><i class="bi bi-truck me-2"></i>Purchases Report</h4>
+        <p class="text-muted mb-0 small">@ViewBag.From &ndash; @ViewBag.To &nbsp;&bull;&nbsp; @Model.Count() order(s)</p>
+    </div>
+    <div class="d-flex gap-2 no-print">
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-printer me-1"></i>Print
+        </button>
+        <a asp-action="Transfers" class="btn btn-outline-secondary btn-sm">Transfers Report</a>
+        <a asp-action="Sales" class="btn btn-outline-secondary btn-sm">Sales Report</a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3 p-3 no-print">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold">Warehouse</label>
+            <select name="warehouseId" class="form-select">
+                <option value="">All Warehouses</option>
+                @foreach (var w in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Warehouses)
+                {
+                    if (w.Value == ViewBag.SelectedWarehouseId?.ToString())
+                    {
+                        <option value="@w.Value" selected>@w.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@w.Value">@w.Text</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">Status</label>
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                @foreach (var s in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.StatusOptions)
+                {
+                    if (s.Value == ViewBag.Status?.ToString())
+                    {
+                        <option value="@s.Value" selected>@s.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@s.Value">@s.Text</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">From</label>
+            <input type="date" name="from" value="@ViewBag.From" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold">To</label>
+            <input type="date" name="to" value="@ViewBag.To" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+    </form>
+</div>
+
+<!-- KPI Summary -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Total Orders</div>
+            <div class="fs-4 fw-bold">@ViewBag.TotalOrders</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Total Value</div>
+            <div class="fs-4 fw-bold text-primary">@ViewBag.CurrencySymbol@(((decimal)ViewBag.TotalAmount).ToString("N2"))</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Received</div>
+            <div class="fs-4 fw-bold text-success">@ViewBag.ReceivedOrders</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 kpi-card">
+            <div class="text-muted small">Pending / Ordered</div>
+            <div class="fs-4 fw-bold text-warning">@ViewBag.PendingOrders</div>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Reference</th>
+                    <th>Warehouse</th>
+                    <th>Supplier</th>
+                    <th>Items</th>
+                    <th>Total Value</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Received</th>
+                    <th class="no-print"></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td class="fw-medium">@p.ReferenceNumber</td>
+                    <td>@p.Warehouse?.Name</td>
+                    <td class="text-muted small">@(p.SupplierName ?? "—")</td>
+                    <td>@p.Items.Sum(i => i.Quantity) <span class="text-muted small">(@p.Items.Count line@(p.Items.Count == 1 ? "" : "s"))</span></td>
+                    <td class="fw-bold">@ViewBag.CurrencySymbol@p.TotalAmount.ToString("N2")</td>
+                    <td><span class="badge-@p.Status.ToString().ToLower()">@p.Status</span></td>
+                    <td class="text-muted small">@p.PurchaseDate.ToString("MM/dd/yyyy")</td>
+                    <td class="text-muted small">@(p.ReceivedDate?.ToString("MM/dd/yyyy") ?? "—")</td>
+                    <td class="no-print">
+                        <a asp-controller="Purchase" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr><td colspan="9" class="text-center py-4 text-muted">No purchase orders found for the selected filters.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
