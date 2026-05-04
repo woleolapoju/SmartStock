@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Applications\\SmartStock\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{489358C7-1D77-24C5-30E7-668631E9E131}|SmartStock\\SmartStock.csproj|c:\\applications\\smartstock\\smartstock\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{489358C7-1D77-24C5-30E7-668631E9E131}|SmartStock\\SmartStock.csproj|solutionrelative:smartstock\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{489358C7-1D77-24C5-30E7-668631E9E131}|SmartStock\\SmartStock.csproj|c:\\applications\\smartstock\\smartstock\\smartstock.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{489358C7-1D77-24C5-30E7-668631E9E131}|SmartStock\\SmartStock.csproj|solutionrelative:smartstock\\smartstock.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{489358C7-1D77-24C5-30E7-668631E9E131}|SmartStock\\SmartStock.csproj|c:\\applications\\smartstock\\smartstock\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{489358C7-1D77-24C5-30E7-668631E9E131}|SmartStock\\SmartStock.csproj|solutionrelative:smartstock\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
@@ -14,25 +22,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 621,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": ".gitignore",
-              "DocumentMoniker": "C:\\Applications\\SmartStock\\SmartStock\\.gitignore",
-              "RelativeDocumentMoniker": "SmartStock\\.gitignore",
-              "ToolTip": "C:\\Applications\\SmartStock\\SmartStock\\.gitignore",
-              "RelativeToolTip": "SmartStock\\.gitignore",
-              "ViewState": "AgIAAJYBAAAAAAAAAAAswKsBAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-04-16T19:55:48.567Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
@@ -40,6 +31,42 @@
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Applications\\SmartStock\\SmartStock\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "SmartStock\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Applications\\SmartStock\\SmartStock\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "SmartStock\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAOgAAAAAAAAAAAAAAMkAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-17T01:08:26.649Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SmartStock",
+              "DocumentMoniker": "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
+              "RelativeDocumentMoniker": "SmartStock\\SmartStock.csproj",
+              "ToolTip": "C:\\Applications\\SmartStock\\SmartStock\\SmartStock.csproj",
+              "RelativeToolTip": "SmartStock\\SmartStock.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-16T20:06:43.213Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": ".gitignore",
+              "DocumentMoniker": "C:\\Applications\\SmartStock\\SmartStock\\.gitignore",
+              "RelativeDocumentMoniker": "SmartStock\\.gitignore",
+              "ToolTip": "C:\\Applications\\SmartStock\\SmartStock\\.gitignore",
+              "RelativeToolTip": "SmartStock\\.gitignore",
+              "ViewState": "AgIAAJYBAAAAAAAAAAAswKsBAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-04-16T19:55:48.567Z"
             }
           ]
         },

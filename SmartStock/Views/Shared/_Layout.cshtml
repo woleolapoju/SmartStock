@@ -196,8 +196,8 @@
 </head>
 <body>
 
-<!-- ── Splash Screen ──────────────────────────────────────────────────────── -->
-@if (User.Identity?.IsAuthenticated == true)
+<!-- ── Splash Screen (Dashboard only) ────────────────────────────────────── -->
+@if (User.Identity?.IsAuthenticated == true && ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard")
 {
 <div id="splash" onclick="dismissSplash()">
     <div id="splash-logo"><i class="bi bi-boxes"></i></div>
@@ -401,6 +401,7 @@ else
 
     // ── Splash screen ───────────────────────────────────────────────────────
     (function() {
+
         var splash = document.getElementById('splash');
         if (!splash) return;
 
