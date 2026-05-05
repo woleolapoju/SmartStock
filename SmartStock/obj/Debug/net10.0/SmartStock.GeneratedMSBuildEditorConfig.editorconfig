@@ -98,8 +98,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Applications/SmartStock/SmartStock/Views/Purchase/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VcRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Applications/SmartStock/SmartStock/Views/Purchase/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Applications/SmartStock/SmartStock/Views/Purchase/Print.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VcUHJpbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Applications/SmartStock/SmartStock/Views/Report/AdjustmentLog.cshtml]
@@ -184,6 +192,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Applications/SmartStock/SmartStock/Views/Transfer/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhbnNmZXJcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Applications/SmartStock/SmartStock/Views/Transfer/Print.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHJhbnNmZXJcUHJpbnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Applications/SmartStock/SmartStock/Views/User/Create.cshtml]

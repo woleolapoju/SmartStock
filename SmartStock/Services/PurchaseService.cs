@@ -72,6 +72,50 @@ namespace SmartStock.Services
             }
         }
 
+        public async Task<ServiceResult> UpdateAsync(int id, CreatePurchaseViewModel model)
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                var purchase = await _db.Purchases
+                    .Include(p => p.Items)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (purchase == null) return ServiceResult.Fail("Purchase not found.");
+                if (purchase.Status != PurchaseStatus.Pending)
+                    return ServiceResult.Fail("Only pending purchases can be edited.");
+
+                _db.RemoveRange(purchase.Items);
+
+                var newItems = model.Items.Select(i => new PurchaseItem
+                {
+                    PurchaseId = id,
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitCost = i.UnitCost,
+                    LineTotal = i.UnitCost * i.Quantity
+                }).ToList();
+
+                purchase.WarehouseId = model.WarehouseId;
+                purchase.SupplierName = model.SupplierName;
+                purchase.Notes = model.Notes;
+                purchase.TotalAmount = newItems.Sum(i => i.LineTotal);
+                purchase.Items = newItems;
+
+                await _db.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                _logger.LogInformation("Purchase {Ref} updated", purchase.ReferenceNumber);
+                return ServiceResult.Ok($"Purchase order {purchase.ReferenceNumber} updated.");
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Error updating purchase {Id}", id);
+                return ServiceResult.Fail("An error occurred updating the purchase order.");
+            }
+        }
+
         public async Task<ServiceResult> ReceiveAsync(int id)
         {
             await using var tx = await _db.Database.BeginTransactionAsync();

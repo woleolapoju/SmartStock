@@ -8,15 +8,38 @@
 
 @section Head {
 <style>
+    @@media screen { .print-header { display: none; } }
     @@media print {
+        @@page { margin: 1.5cm; }
         #sidebar, #sidebar-overlay, .topbar, .no-print { display: none !important; }
-        #main-content { margin-left: 0 !important; }
-        .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
-        .page-hero { box-shadow: none !important; }
-        a.btn { display: none !important; }
+        #main-content { margin-left: 0 !important; padding: 0 !important; }
+        body { background: #fff !important; font-family: Arial, sans-serif !important; font-size: 10pt !important; color: #000 !important; }
+        .print-header { display: block !important; text-align: center; padding-bottom: 10pt; margin-bottom: 14pt; border-bottom: 2px solid #000; }
+        .print-header .ph-company { font-size: 16pt; font-weight: bold; letter-spacing: .04em; }
+        .print-header .ph-title   { font-size: 13pt; margin: 2pt 0; }
+        .print-header .ph-meta    { font-size: 8.5pt; color: #444; }
+        .page-hero { box-shadow: none !important; border-radius: 0 !important; border: none !important; background: #fff !important; padding: 0 0 8pt !important; margin-bottom: 10pt !important; }
+        .page-hero h4 { font-size: 12pt !important; }
+        .page-hero p  { display: none !important; }
+        .card { box-shadow: none !important; border-radius: 0 !important; border: none !important; }
+        .table { font-size: 9pt !important; border-collapse: collapse !important; width: 100% !important; }
+        .table th, .table td { border: 1px solid #666 !important; padding: 3pt 5pt !important; }
+        .table thead.table-light th { background: #ececec !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; }
+        .table-hover tbody tr:hover td { background: transparent !important; }
+        .badge { background: #eee !important; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        a { color: #000 !important; text-decoration: none !important; }
+        code { font-family: Arial, sans-serif !important; background: none !important; }
+        .text-success { color: #000 !important; }
+        .text-danger  { color: #000 !important; }
     }
 </style>
 }
+
+<div class="print-header">
+    <div class="ph-company">SmartStock</div>
+    <div class="ph-title">Stock Adjustment Log</div>
+    <div class="ph-meta">Period: @ViewBag.From &ndash; @ViewBag.To &nbsp;|&nbsp; Printed: @DateTime.Now.ToString("MM/dd/yyyy HH:mm")</div>
+</div>
 
 <div class="page-hero d-flex justify-content-between align-items-center">
     <div>

@@ -5,6 +5,8 @@ namespace SmartStock.ViewModels
 {
     public class CreatePurchaseViewModel
     {
+        public int Id { get; set; }
+
         [Required]
         [Display(Name = "Warehouse")]
         public int WarehouseId { get; set; }

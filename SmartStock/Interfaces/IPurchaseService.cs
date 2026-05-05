@@ -8,6 +8,7 @@ namespace SmartStock.Interfaces
         Task<IEnumerable<Purchase>> GetAllAsync();
         Task<Purchase?> GetByIdAsync(int id);
         Task<ServiceResult> CreateAsync(CreatePurchaseViewModel model, string userId);
+        Task<ServiceResult> UpdateAsync(int id, CreatePurchaseViewModel model);
         Task<ServiceResult> ReceiveAsync(int id);
         Task<ServiceResult> CancelAsync(int id);
     }

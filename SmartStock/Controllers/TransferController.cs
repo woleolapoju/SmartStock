@@ -48,6 +48,18 @@ namespace SmartStock.Controllers
             return View(transfer);
         }
 
+        // GET: Transfer/Print/5
+        public async Task<IActionResult> Print(int id)
+        {
+            var transfer = await _transferService.GetByIdAsync(id);
+            if (transfer == null) return NotFound();
+
+            if (IsStoreRestricted() && transfer.StoreId != GetUserStoreId())
+                return Forbid();
+
+            return View(transfer);
+        }
+
         // GET: Transfer/Create
         [Authorize(Roles = "Admin,WarehouseManager")]
         public async Task<IActionResult> Create()
