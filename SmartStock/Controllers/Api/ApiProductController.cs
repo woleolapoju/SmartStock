@@ -120,6 +120,8 @@ namespace SmartStock.Controllers.Api
         {
             if (string.IsNullOrWhiteSpace(dto.Name) || dto.CategoryId <= 0)
                 return BadRequest(new { error = "Name and Category are required." });
+            if (dto.Price < 0 || dto.CostPrice < 0)
+                return BadRequest(new { error = "Prices cannot be negative." });
 
             var vm = new SmartStock.ViewModels.ProductViewModel
             {

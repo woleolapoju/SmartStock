@@ -1,11 +1,11 @@
-@model IEnumerable<SmartStock.ViewModels.InventoryViewModel>
+@model SmartStock.ViewModels.InventoryListViewModel
 @{
     ViewData["Title"] = "Low Stock Alert";
 }
 
 <div class="page-hero">
     <h4 class="mb-0 fw-bold text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Low Stock Alerts</h4>
-    <p class="text-muted mb-0 small">@Model.Count() items at or below reorder level</p>
+    <p class="text-muted mb-0 small">@Model.TotalCount items at or below reorder level</p>
 </div>
 
 <div class="card">
@@ -15,7 +15,7 @@
                 <tr><th>Product</th><th>SKU</th><th>Location</th><th>Type</th><th>Qty</th><th>Reorder Level</th><th>Deficit</th></tr>
             </thead>
             <tbody>
-            @foreach (var item in Model.OrderBy(i => i.Quantity))
+            @foreach (var item in Model.Items)
             {
                 <tr class="@(item.Quantity == 0 ? "table-danger" : "")">
                     <td class="fw-medium">@item.ProductName</td>
@@ -39,7 +39,7 @@
                     </td>
                 </tr>
             }
-            @if (!Model.Any())
+            @if (!Model.Items.Any())
             {
                 <tr><td colspan="7" class="text-center py-4 text-success">
                     <i class="bi bi-check-circle-fill me-2"></i>All stock levels are OK!
@@ -49,3 +49,5 @@
         </table>
     </div>
 </div>
+
+<partial name="_Pager" model='new PagerViewModel { CurrentPage = Model.Page, PageSize = Model.PageSize, TotalCount = Model.TotalCount, ItemLabel = "low-stock items" }' />

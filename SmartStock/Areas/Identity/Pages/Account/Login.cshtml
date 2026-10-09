@@ -64,13 +64,16 @@
                 </span>
             </div>
 
-            <!-- Remember me -->
-            <div class="mb-4">
+            <!-- Remember me / Forgot password -->
+            <div class="mb-4 d-flex align-items-center justify-content-between">
                 <div class="form-check">
                     <input name="Input.RememberMe" type="checkbox" class="form-check-input"
                            id="rememberMe" value="true" />
                     <label class="form-check-label" for="rememberMe">Remember me</label>
                 </div>
+                <a asp-area="Identity" asp-page="/Account/ForgotPassword" style="color:#7cb3ff;font-size:.82rem;text-decoration:none">
+                    Forgot password?
+                </a>
             </div>
 
             <button type="submit" class="btn btn-signin w-100">

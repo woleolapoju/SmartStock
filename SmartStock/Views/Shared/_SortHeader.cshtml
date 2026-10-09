@@ -1,0 +1,17 @@
+@model SortHeaderViewModel
+@{
+    bool isActive = string.Equals(Model.CurrentSort, Model.Key, StringComparison.OrdinalIgnoreCase);
+    string nextDir = isActive && Model.CurrentDir == "asc" ? "desc" : "asc";
+
+    // Changing the sort resets to page 1 but keeps location, category and other filters.
+    var parts = Context.Request.Query
+        .Where(q => !new[] { "sort", "dir", "page" }.Contains(q.Key, StringComparer.OrdinalIgnoreCase))
+        .Select(q => $"{Uri.EscapeDataString(q.Key)}={Uri.EscapeDataString(q.Value.ToString())}")
+        .Append($"sort={Uri.EscapeDataString(Model.Key)}")
+        .Append($"dir={nextDir}");
+    string url = Context.Request.Path + "?" + string.Join("&", parts);
+    string icon = !isActive ? "bi-arrow-down-up opacity-25" : Model.CurrentDir == "asc" ? "bi-sort-up" : "bi-sort-down";
+}
+<th class="@(isActive ? "sort-active" : "")">
+    <a href="@url" class="sort-link">@Model.Label <i class="bi @icon ms-1"></i></a>
+</th>

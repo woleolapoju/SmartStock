@@ -22,12 +22,12 @@ namespace SmartStock.ViewModels
 
         [Required]
         [Display(Name = "Selling Price")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative")]
         public decimal Price { get; set; }
 
         [Required]
         [Display(Name = "Cost Price")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Cost price must be greater than 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Cost price cannot be negative")]
         public decimal CostPrice { get; set; }
 
         [Required]

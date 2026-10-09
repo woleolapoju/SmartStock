@@ -1,0 +1,208 @@
+@model IEnumerable<SmartStock.ViewModels.InventoryViewModel>
+@inject SmartStock.Interfaces.ISystemParameterService _sp
+@{
+    Layout = null;
+    var p = await _sp.GetAsync();
+    string cur = p.CurrencySymbol;
+    string locationLabel = ViewBag.LocationLabel ?? "All Locations";
+    string categoryLabel = ViewBag.CategoryLabel ?? "All Categories";
+    bool singleLocation = (bool)(ViewBag.IsSingleLocation ?? false);
+    int colCount = singleLocation ? 9 : 10;
+    int labelSpan = singleLocation ? 3 : 4;   // #, Product, SKU (+ Location) before Qty
+
+    var items = Model.ToList();
+    var groups = items.GroupBy(i => i.CategoryName).OrderBy(g => g.Key).ToList();
+
+    decimal totalCost = items.Sum(i => i.CostValue);
+    decimal totalSelling = items.Sum(i => i.SellingValue);
+    decimal totalPL = totalSelling - totalCost;
+    decimal margin = totalSelling == 0 ? 0 : totalPL / totalSelling * 100;
+
+    string Money(decimal v) => (v < 0 ? "(" : "") + cur + Math.Abs(v).ToString("N2") + (v < 0 ? ")" : "");
+    string printedOn = DateTime.Now.ToString("dd MMM yyyy, HH:mm");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Inventory Valuation — @locationLabel — @categoryLabel</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 9.5pt; color: #111; background: #fff; padding: 32px 40px; max-width: 1100px; margin: 0 auto; }
+
+    /* ── Document header ── */
+    .doc-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #111; padding-bottom: 12px; margin-bottom: 16px; }
+    .doc-header .company  { font-size: 18pt; font-weight: 800; letter-spacing: -.01em; }
+    .doc-header .subtitle { font-size: 8.5pt; color: #777; margin-top: 3px; }
+    .doc-header .doc-type { font-size: 14pt; font-weight: bold; text-align: right; color: #333; }
+    .doc-header .doc-ref  { font-size: 9pt; color: #555; text-align: right; margin-top: 3px; }
+
+    /* ── Summary grid ── */
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid #aaa; margin-bottom: 18px; }
+    .summary .cell { padding: 6px 10px; border-right: 1px solid #ddd; }
+    .summary .cell:last-child { border-right: none; }
+    .summary .label { font-size: 7pt; text-transform: uppercase; color: #777; letter-spacing: .06em; margin-bottom: 2px; }
+    .summary .value { font-weight: bold; font-size: 11pt; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; }
+    thead { display: table-header-group; }   /* repeat column headings on every page */
+    tfoot { display: table-row-group; }      /* grand total only once, at the end */
+    thead th { background: #1a1f2e; color: #fff; padding: 6px 8px; font-size: 8pt; text-transform: uppercase; letter-spacing: .04em; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tbody td { padding: 4px 8px; border-bottom: 1px solid #e3e3e3; font-size: 9pt; }
+    tr { page-break-inside: avoid; break-inside: avoid; }
+    tr.group-head td { background: #f1f2f5; font-weight: bold; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #bbb; padding-top: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr.group-total td { font-weight: bold; border-top: 1px solid #999; border-bottom: 1px solid #bbb; font-size: 9pt; }
+    tfoot td { padding: 7px 8px; border-top: 2px solid #111; border-bottom: 3px double #111; font-weight: bold; font-size: 10pt; }
+    .text-end { text-align: right; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .muted { color: #777; }
+    .loss { color: #b00020; }
+
+    /* ── Footer ── */
+    .doc-footer { margin-top: 18px; font-size: 7.5pt; color: #777; display: flex; justify-content: space-between; }
+    .sig-row { display: flex; gap: 40px; margin-top: 40px; page-break-inside: avoid; }
+    .sig-row .sig { flex: 1; border-top: 1px solid #555; padding-top: 4px; font-size: 8.5pt; color: #555; }
+
+    /* ── Screen-only controls ── */
+    .toolbar { margin-bottom: 20px; display: flex; gap: 10px; }
+    .toolbar button { padding: 7px 22px; font-size: 10pt; cursor: pointer; border-radius: 4px; border: 1px solid #555; background: #fff; }
+    .toolbar button.btn-primary { background: #1a1f2e; color: #fff; border-color: #1a1f2e; }
+
+    @@media print {
+        @@page {
+            size: A4 landscape;
+            margin: 1.4cm 1.2cm 1.6cm;
+            @@bottom-left  { content: "@p.OwnerName — Inventory Valuation (@locationLabel, @categoryLabel)"; font-size: 7.5pt; color: #777; }
+            @@bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 7.5pt; color: #777; }
+        }
+        body { padding: 0; max-width: none; }
+        .toolbar, .doc-footer { display: none !important; }
+    }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button class="btn-primary" onclick="window.print()">&#128438; Print</button>
+    <button onclick="window.close()">Close</button>
+</div>
+
+<div class="doc-header">
+    <div>
+        <div class="company">@p.OwnerName</div>
+        <div class="subtitle">Inventory Management System</div>
+    </div>
+    <div>
+        <div class="doc-type">Inventory Valuation Report</div>
+        <div class="doc-ref">@locationLabel &nbsp;·&nbsp; @categoryLabel &nbsp;·&nbsp; As at @printedOn</div>
+    </div>
+</div>
+
+<div class="summary">
+    <div class="cell">
+        <div class="label">Products</div>
+        <div class="value">@items.Select(i => i.ProductId).Distinct().Count().ToString("N0")</div>
+    </div>
+    <div class="cell">
+        <div class="label">Total Units</div>
+        <div class="value">@items.Sum(i => i.Quantity).ToString("N0")</div>
+    </div>
+    <div class="cell">
+        <div class="label">Value at Cost</div>
+        <div class="value">@Money(totalCost)</div>
+    </div>
+    <div class="cell">
+        <div class="label">Value at Selling Price</div>
+        <div class="value">@Money(totalSelling)</div>
+    </div>
+    <div class="cell">
+        <div class="label">Potential P/L (@margin.ToString("N1")%)</div>
+        <div class="value @(totalPL < 0 ? "loss" : "")">@Money(totalPL)</div>
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:36px">#</th>
+            <th>Product</th>
+            <th style="width:110px">SKU</th>
+            @if (!singleLocation) { <th>Location</th> }
+            <th class="text-end" style="width:60px">Qty</th>
+            <th class="text-end" style="width:90px">Cost Price</th>
+            <th class="text-end" style="width:90px">Selling Price</th>
+            <th class="text-end" style="width:105px">Qty × Cost</th>
+            <th class="text-end" style="width:105px">Qty × Selling</th>
+            <th class="text-end" style="width:95px">P/L</th>
+        </tr>
+    </thead>
+    <tbody>
+    @{ int row = 1; }
+    @foreach (var g in groups)
+    {
+        var gCost = g.Sum(i => i.CostValue);
+        var gSell = g.Sum(i => i.SellingValue);
+        var gPL = gSell - gCost;
+
+        <tr class="group-head"><td colspan="@colCount">@g.Key</td></tr>
+        @foreach (var item in g)
+        {
+            <tr>
+                <td class="muted">@(row++)</td>
+                <td>@item.ProductName</td>
+                <td class="muted">@item.SKU</td>
+                @if (!singleLocation) { <td>@item.LocationName</td> }
+                <td class="num">@item.Quantity.ToString("N0")</td>
+                <td class="num">@Money(item.CostPrice)</td>
+                <td class="num">@Money(item.SellingPrice)</td>
+                <td class="num">@Money(item.CostValue)</td>
+                <td class="num">@Money(item.SellingValue)</td>
+                <td class="num @(item.ProfitLoss < 0 ? "loss" : "")">@Money(item.ProfitLoss)</td>
+            </tr>
+        }
+        <tr class="group-total">
+            <td colspan="@labelSpan" class="text-end">@g.Key subtotal</td>
+            <td class="num">@g.Sum(i => i.Quantity).ToString("N0")</td>
+            <td colspan="2"></td>
+            <td class="num">@Money(gCost)</td>
+            <td class="num">@Money(gSell)</td>
+            <td class="num @(gPL < 0 ? "loss" : "")">@Money(gPL)</td>
+        </tr>
+    }
+    @if (!items.Any())
+    {
+        <tr><td colspan="@colCount" style="text-align:center; padding:20px" class="muted">No inventory for @locationLabel (@categoryLabel).</td></tr>
+    }
+    </tbody>
+    @if (items.Any())
+    {
+        <tfoot>
+            <tr>
+                <td colspan="@labelSpan" class="text-end">Grand Total</td>
+                <td class="num">@items.Sum(i => i.Quantity).ToString("N0")</td>
+                <td colspan="2"></td>
+                <td class="num">@Money(totalCost)</td>
+                <td class="num">@Money(totalSelling)</td>
+                <td class="num @(totalPL < 0 ? "loss" : "")">@Money(totalPL)</td>
+            </tr>
+        </tfoot>
+    }
+</table>
+
+<div class="sig-row">
+    <div class="sig">Prepared By</div>
+    <div class="sig">Checked By</div>
+    <div class="sig">Approved By</div>
+</div>
+
+<div class="doc-footer">
+    <span>Values use each product's current cost and selling price. Losses are shown in brackets.</span>
+    <span>Printed @printedOn</span>
+</div>
+
+<script>
+    window.addEventListener('load', () => setTimeout(() => window.print(), 300));
+</script>
+</body>
+</html>

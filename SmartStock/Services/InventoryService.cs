@@ -19,9 +19,9 @@ namespace SmartStock.Services
 
         public async Task<IEnumerable<InventoryViewModel>> GetWarehouseInventoryAsync(int warehouseId)
         {
-            var warehouse = await _db.Warehouses.FindAsync(warehouseId);
+            var warehouse = await _db.Warehouses.AsNoTracking().FirstOrDefaultAsync(w => w.Id == warehouseId);
             return await _db.Inventories
-                .Include(i => i.Product).ThenInclude(p => p.Category)
+                .AsNoTracking()
                 .Where(i => i.LocationType == LocationType.Warehouse && i.LocationId == warehouseId && i.Product.IsActive)
                 .Select(i => new InventoryViewModel
                 {
@@ -43,9 +43,9 @@ namespace SmartStock.Services
 
         public async Task<IEnumerable<InventoryViewModel>> GetStoreInventoryAsync(int storeId)
         {
-            var store = await _db.Stores.FindAsync(storeId);
+            var store = await _db.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == storeId);
             return await _db.Inventories
-                .Include(i => i.Product).ThenInclude(p => p.Category)
+                .AsNoTracking()
                 .Where(i => i.LocationType == LocationType.Store && i.LocationId == storeId && i.Product.IsActive)
                 .Select(i => new InventoryViewModel
                 {
@@ -67,11 +67,11 @@ namespace SmartStock.Services
 
         public async Task<IEnumerable<InventoryViewModel>> GetLowStockItemsAsync()
         {
-            var warehouses = await _db.Warehouses.ToDictionaryAsync(w => w.Id, w => w.Name);
-            var stores = await _db.Stores.ToDictionaryAsync(s => s.Id, s => s.Name);
+            var warehouses = await _db.Warehouses.AsNoTracking().ToDictionaryAsync(w => w.Id, w => w.Name);
+            var stores = await _db.Stores.AsNoTracking().ToDictionaryAsync(s => s.Id, s => s.Name);
 
             return await _db.Inventories
-                .Include(i => i.Product).ThenInclude(p => p.Category)
+                .AsNoTracking()
                 .Where(i => i.Quantity <= i.ReorderLevel && i.Product.IsActive)
                 .Select(i => new InventoryViewModel
                 {
@@ -91,6 +91,149 @@ namespace SmartStock.Services
                 })
                 .OrderBy(i => i.Quantity)
                 .ToListAsync();
+        }
+
+        public async Task<(IEnumerable<InventoryViewModel> Items, int TotalCount)> GetWarehouseInventoryPagedAsync(
+            int warehouseId, int page, int pageSize, int? categoryId = null, string? sort = null, bool desc = false, string? search = null)
+        {
+            var warehouseName = await _db.Warehouses.AsNoTracking()
+                .Where(w => w.Id == warehouseId)
+                .Select(w => w.Name)
+                .FirstOrDefaultAsync() ?? $"Warehouse {warehouseId}";
+
+            return await GetLocationInventoryPagedAsync(LocationType.Warehouse, warehouseId, warehouseName, page, pageSize, categoryId, sort, desc, search);
+        }
+
+        public async Task<(IEnumerable<InventoryViewModel> Items, int TotalCount)> GetStoreInventoryPagedAsync(
+            int storeId, int page, int pageSize, int? categoryId = null, string? sort = null, bool desc = false, string? search = null)
+        {
+            var storeName = await _db.Stores.AsNoTracking()
+                .Where(s => s.Id == storeId)
+                .Select(s => s.Name)
+                .FirstOrDefaultAsync() ?? $"Store {storeId}";
+
+            return await GetLocationInventoryPagedAsync(LocationType.Store, storeId, storeName, page, pageSize, categoryId, sort, desc, search);
+        }
+
+        private async Task<(IEnumerable<InventoryViewModel> Items, int TotalCount)> GetLocationInventoryPagedAsync(
+            LocationType locationType, int locationId, string locationName,
+            int page, int pageSize, int? categoryId, string? sort, bool desc, string? search)
+        {
+            var query = _db.Inventories
+                .AsNoTracking()
+                .Where(i => i.LocationType == locationType && i.LocationId == locationId && i.Product.IsActive);
+
+            if (categoryId.HasValue)
+                query = query.Where(i => i.Product.CategoryId == categoryId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                query = query.Where(i =>
+                    i.Product.Name.Contains(search) ||
+                    i.Product.SKU.Contains(search) ||
+                    (i.Product.Barcode != null && i.Product.Barcode.Contains(search)));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            // Product name is the tiebreaker so paging stays stable across equal sort keys.
+            IOrderedQueryable<Inventory> ordered = (sort?.ToLowerInvariant()) switch
+            {
+                "sku"      => desc ? query.OrderByDescending(i => i.Product.SKU)           : query.OrderBy(i => i.Product.SKU),
+                "category" => desc ? query.OrderByDescending(i => i.Product.Category.Name) : query.OrderBy(i => i.Product.Category.Name),
+                "qty"      => desc ? query.OrderByDescending(i => i.Quantity)              : query.OrderBy(i => i.Quantity),
+                "reorder"  => desc ? query.OrderByDescending(i => i.ReorderLevel)          : query.OrderBy(i => i.ReorderLevel),
+                "cost"     => desc ? query.OrderByDescending(i => i.Product.CostPrice)     : query.OrderBy(i => i.Product.CostPrice),
+                "price"    => desc ? query.OrderByDescending(i => i.Product.Price)         : query.OrderBy(i => i.Product.Price),
+                "status"   => desc ? query.OrderByDescending(i => i.Quantity <= i.ReorderLevel) : query.OrderBy(i => i.Quantity <= i.ReorderLevel),
+                "updated"  => desc ? query.OrderByDescending(i => i.LastUpdated)           : query.OrderBy(i => i.LastUpdated),
+                _          => desc ? query.OrderByDescending(i => i.Product.Name)          : query.OrderBy(i => i.Product.Name),
+            };
+
+            var items = await ordered
+                .ThenBy(i => i.Product.Name)
+                .Skip(Math.Max(0, page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(i => new InventoryViewModel
+                {
+                    InventoryId = i.Id,
+                    ProductId = i.ProductId,
+                    ProductName = i.Product.Name,
+                    SKU = i.Product.SKU,
+                    CategoryName = i.Product.Category.Name,
+                    LocationType = i.LocationType,
+                    LocationId = i.LocationId,
+                    LocationName = locationName,
+                    Quantity = i.Quantity,
+                    ReorderLevel = i.ReorderLevel,
+                    LastUpdated = i.LastUpdated,
+                    CostPrice = i.Product.CostPrice,
+                    SellingPrice = i.Product.Price
+                })
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        public async Task<(IEnumerable<InventoryViewModel> Items, int TotalCount)> GetLowStockItemsPagedAsync(int page, int pageSize, int? restrictToStoreId = null)
+        {
+            var query = _db.Inventories
+                .AsNoTracking()
+                .Where(i => i.Quantity <= i.ReorderLevel && i.Product.IsActive);
+
+            if (restrictToStoreId.HasValue)
+                query = query.Where(i => i.LocationType == LocationType.Store && i.LocationId == restrictToStoreId.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var pagedRaw = await query
+                .OrderBy(i => i.Quantity)
+                .Skip(Math.Max(0, page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(i => new
+                {
+                    i.Id,
+                    i.ProductId,
+                    i.Product.Name,
+                    i.Product.SKU,
+                    CategoryName = i.Product.Category.Name,
+                    i.LocationType,
+                    i.LocationId,
+                    i.Quantity,
+                    i.ReorderLevel,
+                    i.LastUpdated
+                })
+                .ToListAsync();
+
+            // Resolve location names only for the locations present on this page,
+            // instead of loading every warehouse/store up front.
+            var warehouseIds = pagedRaw.Where(x => x.LocationType == LocationType.Warehouse).Select(x => x.LocationId).Distinct().ToList();
+            var storeIds = pagedRaw.Where(x => x.LocationType == LocationType.Store).Select(x => x.LocationId).Distinct().ToList();
+
+            var warehouseNames = await _db.Warehouses.AsNoTracking()
+                .Where(w => warehouseIds.Contains(w.Id)).ToDictionaryAsync(w => w.Id, w => w.Name);
+            var storeNames = await _db.Stores.AsNoTracking()
+                .Where(s => storeIds.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Name);
+
+            var items = pagedRaw.Select(x => new InventoryViewModel
+            {
+                InventoryId = x.Id,
+                ProductId = x.ProductId,
+                ProductName = x.Name,
+                SKU = x.SKU,
+                CategoryName = x.CategoryName,
+                LocationType = x.LocationType,
+                LocationId = x.LocationId,
+                LocationName = x.LocationType == LocationType.Warehouse
+                    ? warehouseNames.GetValueOrDefault(x.LocationId, "Warehouse")
+                    : storeNames.GetValueOrDefault(x.LocationId, "Store"),
+                Quantity = x.Quantity,
+                ReorderLevel = x.ReorderLevel,
+                LastUpdated = x.LastUpdated
+            }).ToList();
+
+            return (items, totalCount);
         }
 
         public async Task<Inventory?> GetInventoryAsync(int productId, LocationType locationType, int locationId) =>
@@ -146,6 +289,27 @@ namespace SmartStock.Services
             inventory.LastUpdated = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             return ServiceResult.Ok("Reorder level updated.");
+        }
+
+        // Prices live on the Product, so this applies to every warehouse and store.
+        public async Task<ServiceResult> UpdateProductPricesAsync(int productId, decimal costPrice, decimal sellingPrice)
+        {
+            if (costPrice < 0 || sellingPrice < 0)
+                return ServiceResult.Fail("Prices cannot be negative.");
+
+            var product = await _db.Products.FindAsync(productId);
+            if (product == null)
+                return ServiceResult.Fail("Product not found.");
+
+            product.CostPrice = Math.Round(costPrice, 2);
+            product.Price = Math.Round(sellingPrice, 2);
+            product.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+
+            var msg = $"Prices updated for {product.Name}.";
+            if (product.Price < product.CostPrice)
+                msg += " Note: selling price is below cost price.";
+            return ServiceResult.Ok(msg);
         }
 
         public async Task<ServiceResult> EnsureInventoryRowAsync(int productId, LocationType locationType, int locationId, int reorderLevel = 10)

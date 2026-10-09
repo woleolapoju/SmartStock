@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using SmartStock.Data;
 using SmartStock.Filters;
@@ -44,6 +45,10 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<SystemParameterFilter>();
 });
 builder.Services.AddRazorPages();
+
+// ── Email (used for forgot/reset password) ────────────────────────────────────
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // ── Application Services ──────────────────────────────────────────────────────
 builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, CustomUserClaimsPrincipalFactory>();

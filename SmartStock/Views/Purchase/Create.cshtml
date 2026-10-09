@@ -102,14 +102,14 @@
                         <label class="form-label fw-semibold">Cost Price ($) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" id="qp-costPrice" class="form-control" step="0.01" min="0.01" placeholder="0.00" />
+                            <input type="number" id="qp-costPrice" class="form-control" step="0.01" min="0" placeholder="0.00" />
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Selling Price ($) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" id="qp-price" class="form-control" step="0.01" min="0.01" placeholder="0.00" />
+                            <input type="number" id="qp-price" class="form-control" step="0.01" min="0" placeholder="0.00" />
                         </div>
                     </div>
                 </div>
@@ -179,7 +179,7 @@
                 <label class="form-label small fw-semibold">Unit Cost ($)</label>
                 <div class="input-group">
                     <span class="input-group-text">$</span>
-                    <input type="number" name="Items[${idx}].UnitCost" class="form-control cost-input no-select2" step="0.01" min="0.01" required oninput="recalculate()" />
+                    <input type="number" name="Items[${idx}].UnitCost" class="form-control cost-input no-select2" step="0.01" min="0" required oninput="recalculate()" />
                 </div>
             </div>
             <div class="col-md-1">
@@ -264,8 +264,14 @@
 
         errDiv.classList.add('d-none');
 
-        if (!name || !catId || !costPrice || !price) {
+        // 0 is a valid price; only blank or negative values are rejected.
+        if (!name || !catId || isNaN(costPrice) || isNaN(price)) {
             errDiv.textContent = 'Name, Category, Cost Price, and Selling Price are required.';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+        if (costPrice < 0 || price < 0) {
+            errDiv.textContent = 'Prices cannot be negative.';
             errDiv.classList.remove('d-none');
             return;
         }

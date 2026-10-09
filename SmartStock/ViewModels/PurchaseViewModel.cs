@@ -37,7 +37,7 @@ namespace SmartStock.ViewModels
         public int Quantity { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue)]
+        [Range(0, double.MaxValue, ErrorMessage = "Unit cost cannot be negative")]
         public decimal UnitCost { get; set; }
 
         public string? ProductName { get; set; }
